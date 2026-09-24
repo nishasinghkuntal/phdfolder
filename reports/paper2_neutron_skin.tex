@@ -69,7 +69,7 @@ with $M^*=M-\Phi$ and $V=W\pm R/2+V_{\rm Coul}$ ($+$ for protons). Densities are
 \item \textbf{Meson fields} are solved with the exact Green's function of $-\nabla^2+m^2$ instead of finite differences, with exponentials arranged so nothing overflows. Finite differences were unstable because $m_\omega h\sim0.2$.
 \item \textbf{Basis}: taken much larger than the occupied levels. At the soft corner of the grid the bound neutron levels of $^{208}$Pb hold exactly 126 neutrons with no margin, and a small basis failed there.
 \item \textbf{Starting fields}: the $\rho$ field must start negative for a neutron-rich nucleus and must include the $\omega$--$\rho$ term. An earlier version got this wrong and silently lost every low-$\Lsym$ point, which is exactly where CREX points. After fixing, the isovector field is also damped in the first sweeps.
-\item \textbf{Convergence} is judged on the skin itself (stable over several sweeps), and occupations are frozen once the fields have settled, to avoid oscillation between two close levels near the Fermi surface.
+\item \textbf{Convergence} is judged on the skin (stable over several sweeps), and occupations are frozen once the fields have settled, to avoid oscillation between two close levels near the Fermi surface. \emph{Correction found while writing this report:} the skin alone is not a safe test. In the slow early sweeps both radii can drift outward together by $\sim0.1$ fm while their difference hardly moves, and the old test (skin stable to $2\times10^{-4}$ fm over three sweeps) could stop there after only $\sim10$ sweeps. This happened for NL3 $^{48}$Ca ($B/A=9.20$ MeV, $r_{\rm ch}=3.38$ fm instead of 8.58 MeV and 3.46 fm) and for some scan points, e.g.\ BigApple $\Esym=35.5$, $\Lsym=106.25$ ($B/A=9.33\to8.51$ MeV, skin $0.2273\to0.2223$ fm). The test now also requires the proton radius to be stable and at least 20 sweeps. The whole skin grid is being recomputed with this test (\texttt{rerun\_skin\_grid\_fixed.py}); see Sec.~\ref{sec:rerun}.
 \item \textbf{Sanity gate}: if the central density collapses the result is rejected instead of being returned.
 \item Observables: $r_n$, $r_p$, $\DRnp$, charge radius (folding in the nucleon form factors, $r_p^2=0.7056$ fm$^2$, $r_n^2=-0.1161$ fm$^2$), and binding energy with centre-of-mass correction.
 \end{itemize}
@@ -128,7 +128,19 @@ IOPB-I & 33.30 & 63.58 & 0.2226 & 0.221 & 0.1975 & 0.202\\
 \item One model over $A=16$--208 ($^{16}$O, $^{40}$Ca, $^{48}$Ca, $^{208}$Pb) converges everywhere, with binding energies within 0.09 MeV per nucleon of experiment.
 \item The $N=Z$ nuclei come out with \emph{negative} skins, $-0.030$ fm ($^{16}$O) and $-0.053$ fm ($^{40}$Ca), which is correct because Coulomb pushes protons out.
 \item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls from 0.0024--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0003--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} near $\Lsym\approx80$ MeV, and in the cooling band 50--75 MeV it is 0.0017--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
-\item Benchmarks with NL3 \cite{NL3} and FSUGold \cite{ToddRutel2005} (published Pb skins 0.280 and 0.207 fm) are also coded in \texttt{finite\_nucleus\_rmf.py}, but in the current version they stop with ``effective mass collapsed''. Most likely the benchmark input path was not updated when the code moved to model-specific meson masses. This does not touch any result above (the validation against Das et al.\ uses the production path), but I will fix it so that the solver is also tested on a set that is not part of the scan. \fillin{fix benchmark path}
+\item \textbf{Independent benchmarks (NL3 and FSUGold).} These sets are not part of the scan and have published finite-nucleus results. The benchmark path in the code first failed (``effective mass collapsed''). I traced it to two convention errors in the benchmark inputs: NL3 writes $M^*=M+g_\sigma\sigma$ with $\sigma<0$, so the cubic coupling changes sign ($b=-g_2/(Mg_\sigma^3)=+2.055\times10^{-3}$, $c=g_3/g_\sigma^4=-2.651\times10^{-3}$), and NL3 couples the $\rho$ as $g_\rho\boldsymbol\tau\cdot\boldsymbol\rho$ without the $\tfrac12$ of this Lagrangian, so $g_\rho$ must be doubled; for FSUGold I now take $b=\kappa/2M$, $c=\lambda/6$ from the published $\kappa=1.4203$ MeV, $\lambda=0.023762$, and the starting $\omega$ field includes the $\zeta$ term. After the fix:
+\begin{center}
+\begin{tabular}{llccc}
+\toprule
+Set & Nucleus & $\DRnp$ (fm) mine / published & $r_{\rm ch}$ (fm) mine / published & $B/A$ (MeV) mine / published\\
+\midrule
+NL3 & $^{208}$Pb & 0.277 / 0.280 & 5.536 / 5.509 & 7.74 / 7.90\\
+NL3 & $^{48}$Ca & 0.226 / $\approx$0.23--0.245 & 3.464 / 3.473 & 8.58 / 8.64\\
+FSUGold & $^{208}$Pb & 0.207 / 0.207 & 5.514 / 5.521 & 7.82 / 7.89\\
+\bottomrule
+\end{tabular}
+\end{center}
+NL3 $^{48}$Ca: later comparisons quote an NL3 skin of about 0.23--0.245 fm (e.g.\ in the RMF studies around CREX), which agrees with my 0.226 fm; the value 0.195 fm written in an older comment of the code is not supported and has been corrected there.
 \end{itemize}
 
 %=====================================================================
@@ -216,6 +228,9 @@ The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the g
 \item All numbers of the paper 2 draft (validation table, slopes, fit residuals, tension costs, joint optimum, intervals) are recomputed from the data files by \texttt{Verification/verify\_papers.py}; its last log shows every check passing, for example joint optimum FSUGarnet at $\Esym=34.0$, $\Lsym=50$ with Pb 0.1775 fm, Ca 0.1742 fm and joint $\chi^2=4.425$.
 \item \textbf{Things I noticed while writing this report and still have to look at:} (i) a few $^{48}$Ca points are not smooth in $\Lsym$ (for example BigApple at $\Esym=35.5$, $\Lsym=106.25$ has $B/A=-9.33$ MeV and a smaller charge radius than its neighbours), which could be a different occupation converging; they pass the convergence flag, so I should check the level scheme there. (ii) The older script \texttt{skin\_constraint.py} refers to a variable that no longer exists in \texttt{finite\_nucleus\_rmf.py}; the working script is \texttt{skin\_constraints.py}. (iii) Running \texttt{skin\_constraints.py} today, with its simpler one-sigma band method, gives joint $\chi^2_{\min}=4.46$--4.70 per model and CREX-alone bands that extend below the computed $\Lsym$ range; these are extrapolations, and the numbers quoted above come from the likelihood analysis on the computed grid.
 \end{enumerate}
+
+\subsection{Recomputation of the skin grid with the corrected convergence test}\label{sec:rerun}
+Status (24 September): running. All 148 grid points and the six validation points are being recomputed with \texttt{rerun\_skin\_grid\_fixed.py} (same couplings and meson masses, 451 mesh points, new convergence test). With the new test a $^{208}$Pb point needs about 150 sweeps instead of 10--30, so the full run takes several hours. The first finished point, BigApple at $\Esym=26.5$, $\Lsym=58.75$, moves from 0.1747 to 0.1683 fm ($-0.006$ fm). Changes of this size are small compared with the PREX-2 and CREX errors (0.071 and 0.035 fm) but comparable with the fit residuals (0.003--0.007 fm), so the surface fits and the intervals of Table~\ref{tab:constraints} must be redone with the new grid before submission. \fillin{new validation table, fit residuals and intervals from \texttt{skin\_grid\_fixed\_*.csv}}
 
 %=====================================================================
 \begin{thebibliography}{99}

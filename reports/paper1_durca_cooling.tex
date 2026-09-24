@@ -108,7 +108,7 @@ with $k_F=(1.5\pi^2 n_0)^{1/3}$ and $E_F^*=\sqrt{k_F^2+M^{*2}}$. The $\rho$ meso
 \Lambda_{\omega\rho} = \frac{3J_1-L_1}{96\,J_1^2\,W_0\,(dW/dn)_0},\qquad
 \frac{1}{C_\rho^2} = \frac{n_0}{8J_1} - 2\Lambda_{\omega\rho}W_0^2,
 \end{equation}
-where $W_0$ solves $W_0/C_\omega^2+\zeta W_0^3/6=n_0$ and $(dW/dn)_0=[1/C_\omega^2+\zeta W_0^2/2]^{-1}$. I took these relations from the parameter note \texttt{RMFparameters.pdf} (Eqs.~19--23) \fillin{add the proper reference of this note} and generalised them to $\zeta\neq0$; for $\zeta=0$ they reduce to the original form. Table~\ref{tab:J0L0} gives $J_0$ and $L_0$ as my code computes them.
+where $W_0$ solves $W_0/C_\omega^2+\zeta W_0^3/6=n_0$ and $(dW/dn)_0=[1/C_\omega^2+\zeta W_0^2/2]^{-1}$. I took these relations from the parameter note \texttt{RMFparameters.pdf} (Eqs.~19--23), which is the isovector prescription of Thapa and Sinha \cite{ThapaSinha2022} that Sarkar et al.\ also follow \cite{Sarkar2023} \fillin{confirm from the title page of the PDF}, and generalised them to $\zeta\neq0$; for $\zeta=0$ they reduce to the original form. Table~\ref{tab:J0L0} gives $J_0$ and $L_0$ as my code computes them.
 
 \begin{table}[h]
 \centering
@@ -251,7 +251,7 @@ BigApple ($\Esym=31.32$, $\Lsym=39.80$)$^a$ & 2.593 & 2.60 & \cite{BigApple}\\
 \smallskip
 {\footnotesize $^a$ Computed with \texttt{durca\_threshold\_mass.py}: same EoS code, but a short Python TOV using the RMF core table down to 0.03 fm$^{-3}$ plus a $\Gamma=4/3$ outer layer instead of the NSCool crust. It gives 2.361 $\Msun$ for GM1 (full pipeline 2.360), so masses are reliable to about 0.01 $\Msun$. Radii from it are 0.2--0.4 km too small without the real crust, so I do not quote them. The $\Esym$, $\Lsym$ of the three modern sets are the published values in Table~2 of Ref.~\cite{Das2021}.}
 \end{table}
-For GM, setting $\Lsym=L_0+3(\Esym-J_0)$ makes $\Lambda_{\omega\rho}$ exactly zero, and with $\Esym=32.5$ MeV this is the original GM isovector sector. The code returns $C_\rho^2=4.414$ fm$^2$ (GM1) and 4.794 fm$^2$ (GM2, GM3), against 4.411 and 4.791 in their Table~II, and the maximum masses agree within 0.2--0.5\%. The NL3$\omega\rho$ test is the one with $\Lambda_{\omega\rho}\ne0$: I do not copy its $g_\rho$ and $\Lambda$ but let the code derive them from the published $\Esym$ and $\Lsym$; it returns $\Lambda_{\omega\rho}=0.0297$, against about 0.03 in the literature, and $M_{\max}=2.756\,\Msun$ against 2.75. FSUGarnet and BigApple agree within 0.3\%. IOPB-I comes out 1.4\% low (2.120 against 2.15); together with the 1.4\% difference in $K$ for BigApple (Sec.~\ref{sec:checks}) this suggests the isoscalar inputs of the $\zeta\neq0$ models should be checked once more against the original tables. \fillin{recheck later with the full pipeline and the NSCool crust}
+For GM, setting $\Lsym=L_0+3(\Esym-J_0)$ makes $\Lambda_{\omega\rho}$ exactly zero, and with $\Esym=32.5$ MeV this is the original GM isovector sector. The code returns $C_\rho^2=4.414$ fm$^2$ (GM1) and 4.794 fm$^2$ (GM2, GM3), against 4.411 and 4.791 in their Table~II, and the maximum masses agree within 0.2--0.5\%. The NL3$\omega\rho$ test is the one with $\Lambda_{\omega\rho}\ne0$: I do not copy its $g_\rho$ and $\Lambda$ but let the code derive them from the published $\Esym$ and $\Lsym$; it returns $\Lambda_{\omega\rho}=0.0297$, against about 0.03 in the literature, and $M_{\max}=2.756\,\Msun$ against 2.75. FSUGarnet and BigApple agree within 0.3\%. IOPB-I comes out 1.4\% low (2.120 against 2.149). I traced this to $\zeta$: the code derived $\zeta=0.0191$ for IOPB-I, while the published E-RMF value $\zeta_0=3.103$ with $g_\omega/4\pi=1.062$ \cite{IOPBI} corresponds to $\zeta=\zeta_0/g_\omega^2=0.0174$ in this Lagrangian. With the published $\zeta$ (and $b$, $c$, $C_\sigma^2$, $C_\omega^2$ refitted exactly to the published saturation point) the code gives $M_{\max}=2.149\,\Msun$, exactly the published value; the same test with the published $\zeta=0.0235$ (FSUGarnet) and $0.0007$ (BigApple) gives 2.067 and 2.604 $\Msun$ (published 2.07 and 2.60). So the solver, TOV and Lagrangian are right, and the small differences come only from the $\zeta$ values used in the scan. Effect on the analysis: $M_{\max}$ of IOPB-I rises by 0.03 $\Msun$ and $M_{\rm DU}$ changes by at most 0.02 $\Msun$ (Sec.~\ref{sec:checks}). \fillin{confirm the three published $\zeta$ values from the parameter tables of Refs.~\cite{FSUGarnet,IOPBI,BigApple}; decide whether to rerun the scan with them}
 
 %=====================================================================
 \section{Cooling with NSCool}\label{sec:cooling}
@@ -327,7 +327,9 @@ Ages and temperatures of 14 stars are taken from the compilation of Potekhin et 
 
 \paragraph{Correction of RX J0822$-$4300.} The value used earlier (and still written in the older scripts) was $\log T=6.24$, i.e.\ 150 eV. When I checked the source, this is the \emph{hot} component of the two-component fit of Zavlin et al.\ \cite{Zavlin1999}; the cold 67 eV component is the one with a 12 km emitting radius, i.e.\ the whole star. A hydrogen atmosphere over the full surface gives $T^\infty=1.18\pm0.05$ MK, $\log T=6.072$, which is also the value in Potekhin et al.\ \cite{Potekhin2020}. With the old value RX J0822 alone gave 15.9 of a total $\chi^2$ of 38.1; with 6.072 it gives 1.7 of 22.3.
 
-\noindent\fillin{To check before submission:} the abstract of Zavlin, Tr\"umper and Pavlov 1999 \cite{Zavlin1999} reports a hydrogen/helium atmosphere fit with $T^\infty_{\rm eff}=(1.6$--$1.9)\times10^6$ K, not a two-component 67/150 eV fit. The two-blackbody fit may come from a later paper (for example Hui and Becker 2006 \cite{HuiBecker2006}), and the 1.18 MK full-surface value should be traced to the exact paper and table (Potekhin et al.\ 2020 \cite{Potekhin2020} lists its source). The conclusion (use the whole-surface temperature) does not change, but the citation must point to the right paper.
+\noindent\textbf{Source of these numbers.} The paper~1 draft attributes the 67/150 eV two-component fit to Zavlin et al.\ 1999 \cite{Zavlin1999}, but that paper reports a single hydrogen/helium atmosphere fit with $T^\infty_{\rm eff}=(1.6$--$1.9)\times10^6$ K. My analysis script (\texttt{full\_multimass\_5mode.py}) records the real sources: the two-component (2NSA) fit is the one listed in the Potekhin et al.\ 2020 catalogue \cite{Potekhin2020}, and the full-surface magnetised hydrogen (nsmax) value $1.18\pm0.05$ MK is noted there as ``Shibanov et al.\ (2016)''. The only Shibanov et al.\ 2016 paper I can find (ApJ 831, 112) is about the neutron star Calvera, so this citation must be checked in Table~1 of Potekhin et al.\ 2020 before the paper is submitted. \fillin{find the exact paper for the 2NSA fit and the 1.18 MK value in the Potekhin 2020 table; replace the Zavlin 1999 citation in the paper~1 draft}
+
+The same script notes that other acceptable fits span 0.79--1.34 MK ($\log T=5.90$--6.13), so $\sigma=0.05$ dex is probably too small for this star; $\sigma\approx0.12$ would cover the spread. This is a systematic worth testing, since RX~J0822 had such a large weight before the correction.
 
 \paragraph{Still to check.} Five other entries in the older list differ from Potekhin et al.\ 2020 by more than 0.1 dex (four of them colder than what I used). I have not changed them yet because each needs a decision on blackbody vs atmosphere vs full surface fit. Since my models already run cold at late ages, changing them would probably make the fit worse, not better.
 
@@ -381,27 +383,27 @@ with $\chi^2/{\rm dof}=1.60$. The $\Esym$ interval covers most of the scanned ra
 The single best EoS is GM2 at $\Esym=32.5$, $\Lsym=80$ MeV. I do not read anything into which model is best, because GM1 and GM2 have no published meson masses and cannot be used for nuclei (Report~2).
 
 \subsection{Direct Urca threshold masses inside the allowed region}\label{sec:mdu}
-For each EoS the threshold density $n_{\rm DU}$ comes from the EoS code, and $M_{\rm DU}$ is the mass of the star whose central density equals $n_{\rm DU}$. I computed it with \texttt{durca\_threshold\_mass.py} (see the note under Table~\ref{tab:mmax}) for every EoS in the box $\Lsym=50$--75 MeV, $\Esym=28$--35.5 MeV that passes the $2\,\Msun$ and causality cuts (176 EoS). The results are in \texttt{reports/data/durca\_threshold\_68box.dat}.
+For each EoS the threshold density $n_{\rm DU}$ comes from the EoS code, and $M_{\rm DU}$ is the mass of the star whose central density equals $n_{\rm DU}$. I read it off the pipeline $M$--$R$ curves (\texttt{MRcurve\_*\_CAT.dat} from \texttt{TOVprofile2\_automated.f90} with the NSCool crust): the central energy density at $n_{\rm DU}$ is taken from the EoS table and $M$ is interpolated on the stable branch. Curves were available for 683 of the 864 EoS and for 152 of the EoS in the box $\Lsym=50$--75 MeV, $\Esym=28$--36 MeV. As a cross-check, \texttt{durca\_threshold\_mass.py} (a short Python TOV without the real crust) gives the same $M_{\rm DU}$ within 0.015 $\Msun$ (mean difference 0.0003 $\Msun$ over 624 EoS). Data: \texttt{reports/data/durca\_threshold\_pipeline\_MR.dat}.
 
 \begin{table}[h]
 \centering
-\caption{Direct Urca threshold mass in the 68\% box. ``none'' means DUrca never opens in a stable star.}\label{tab:mdu}
+\caption{Direct Urca threshold mass in the 68\% box, from the pipeline $M$--$R$ curves. ``none'' means DUrca never opens in a stable star.}\label{tab:mdu}
 \begin{tabular}{lccc}
 \toprule
 Model & EoS & $M_{\rm DU}\le1.4\,\Msun$ & $M_{\rm DU}$ range (median) of the rest\\
 \midrule
-GM1 & 36 & 0 & 1.80--2.31 (2.21); 23 none\\
-GM2 & 32 & 0 & 1.45--1.64 (1.64); 30 none\\
-FSUGarnet & 36 & 7 & 1.15--2.02 (1.65)\\
-IOPB-I & 36 & 7 & 1.11--2.05 (1.64)\\
+GM1 & 24 & 0 & 1.90--2.31 (2.21); 15 none\\
+GM2 & 21 & 0 & 1.64; 20 none\\
+FSUGarnet & 35 & 7 & 1.15--1.99 (1.64)\\
+IOPB-I & 36 & 7 & 1.11--2.06 (1.64)\\
 BigApple & 36 & 1 & 1.40--2.60 (2.17)\\
 \midrule
-all & 176 & 15 (9\%) & 1.11--2.60 (1.80); 53 none\\
+all & 152 & 15 (9.9\%) & 1.11--2.60 (1.77); 35 none\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At $\Esym=32.5$ MeV, $M_{\rm DU}$ falls smoothly with $\Lsym$: for FSUGarnet from 1.78 $\Msun$ at $\Lsym=50$ to 1.37 at 75, for IOPB-I from 1.80 to 1.33, for BigApple from 2.40 to 1.69; for GM1 DUrca appears only at $\Lsym\ge70$ (2.26 and 1.99 $\Msun$) and for GM2 not at all in this box. The single best EoS (GM2, 32.5, 80) has $M_{\rm DU}=1.47\,\Msun$ and $M_{\max}=2.005\,\Msun$. So the picture behind the fit is: 1.4 $\Msun$ stars without DUrca, and the two cold stars that pick 1.8 $\Msun$ are above threshold.
+At $\Esym=32.5$ MeV, $M_{\rm DU}$ falls smoothly with $\Lsym$: for FSUGarnet from 1.78 $\Msun$ at $\Lsym=50$ to 1.37 at 75, for IOPB-I from 1.80 to 1.33, for BigApple from 2.40 to 1.69; for GM1 DUrca appears only at $\Lsym\ge70$ (2.26 and 1.99 $\Msun$) and for GM2 not at all in this box. The single best EoS (GM2, 32.5, 80) has $M_{\rm DU}=1.47\,\Msun$ and $M_{\max}=2.006\,\Msun$. So the picture behind the fit is: 1.4 $\Msun$ stars without DUrca, and the two cold stars that pick 1.8 $\Msun$ are above threshold.
 
 \paragraph{Cross-check with Sarkar, Thapa and Sinha.} For GM1 at their point $\Esym=38.1$, $\Lsym=85$ MeV my codes give $n_{\rm DU}=0.305$ fm$^{-3}$ and $M_{\rm DU}=1.05\,\Msun$; they report about 0.289 fm$^{-3}$ and $0.978\,\Msun$ \cite{Sarkar2023}. The agreement is at the 5\% level, and the difference is expected because they also fix $\Esym(0.1~{\rm fm}^{-3})\approx28$ MeV and use a different crust in the TOV. At $\Lsym=105$ MeV I get $0.78\,\Msun$, again close to their 0.8--0.9 $\Msun$.
 
@@ -438,7 +440,7 @@ BigApple & 0.6080 (0.608) & $-16.340$ ($-16.34$) & $5.0\times10^{-5}$ & 230.2 (2
 \end{tabular}
 \end{adjustbox}
 \end{center}
-The small GM differences come from the 4-digit rounding in their Table~II. For BigApple $K$ comes out 1.4\% higher than published \fillin{recheck the $b$, $c$, $\zeta$ derivation for BigApple}.
+The small GM differences come from the 4-digit rounding in their Table~II. For BigApple $K$ comes out 1.4\% higher than published. Reason: for the $\zeta\neq0$ sets $b$, $c$, $\zeta$ were derived from $P(n_0)=0$, the $\sigma$ equation and the energy density with $C_\sigma^2$, $C_\omega^2$ taken from the published couplings, so $K$ was not imposed. Refitting the isoscalar sector exactly to $(n_0,E/A,K,M^*/M)$ at fixed $\zeta$ (a $\zeta\neq0$ version of \texttt{isoscalar\_fit.py}) gives $K=227.1$ MeV exactly, and changes $M_{\max}$ by $\le0.001\,\Msun$ and $M_{\rm DU}$ by $\le0.005\,\Msun$ at the published $\Esym$, $\Lsym$ of all three sets. So this difference has no effect on the results.
 \item \textbf{GM $\rho$ coupling}: with $\Esym=32.5$ MeV and $\Lambda_{\omega\rho}=0$ the code gives $C_\rho^2=4.414$ and 4.794 fm$^2$ (published 4.411, 4.791).
 \item \textbf{Round trip}: from the couplings I recompute $\Esym$ and $\Lsym$. At (38.5, 85) MeV: GM1 38.495 / 84.988, GM2 38.496 / 84.996; FSUGarnet, IOPB-I, BigApple within $10^{-4}$ MeV.
 \item \textbf{Pressure two ways} (Euler relation vs.\ $T^{ii}/3$): agree to $6\times10^{-13}$.
@@ -492,16 +494,19 @@ The small GM differences come from the 4-digit rounding in their Table~II. For B
 \midrule
 $\Esym$ (MeV) & 28.0--36.0 (68\%) & $29.4\pm0.7$\\
 $\Lsym$ (MeV) & 50--75 (68\%), 35--80 (95\%) & $29^{+8}_{-8}$ (IF alone $41^{+14}_{-15}$)\\
-$M_{\rm DU}$ ($\Msun$) & median 1.80 in the 68\% box; best fit 1.47 & $1.89^{+0.24}_{-0.21}$\\
-$P(M_{\rm DU}\le1.4\,\Msun)$ & 9\% of EoS in the 68\% box & 0.26\%\\
+$M_{\rm DU}$ ($\Msun$) & median 1.77 in the 68\% box; best fit 1.47 & $1.89^{+0.24}_{-0.21}$\\
+$P(M_{\rm DU}\le1.4\,\Msun)$ & 9.9\% of EoS in the 68\% box$^*$ & 0.26\%\\
 $R_{1.4}$ (km) & 12.96--13.63 & $12.10^{+0.28}_{-0.39}$\\
 \bottomrule
 \end{tabular}
+
+\smallskip
+{\footnotesize $^*$ A fraction of grid points, not a posterior probability. The like-for-like number is the cooling-likelihood weighted $P(M_{\rm DU}\le1.4\,\Msun)$, which needs \texttt{Data/cooling\_chi2\_final.csv}. \fillin{compute}}
 \end{center}
 
 \paragraph{My assessment: partly a help, partly a real tension.}
 \begin{enumerate}
-\item \textbf{Where it helps.} The physical picture is the same: DUrca should not work in $\le1.4\,\Msun$ stars but can work in heavier ones. Their median $M_{\rm DU}=1.89\,\Msun$ and my median 1.80 $\Msun$ (best fit 1.47, with the two cold stars assigned $1.8\,\Msun$) agree well. Their $\Esym$ lies inside my 68\% interval. And both results are well below the PREX-2 based values used by Sarkar, Thapa and Sinha \cite{Sarkar2023}, where DUrca opens near $1\,\Msun$. So it supports our message that cooling does not need the very stiff PREX-2 symmetry energy.
+\item \textbf{Where it helps.} The physical picture is the same: DUrca should not work in $\le1.4\,\Msun$ stars but can work in heavier ones. Their median $M_{\rm DU}=1.89\,\Msun$ and my median 1.77 $\Msun$ (best fit 1.47, with the two cold stars assigned $1.8\,\Msun$) agree well. Their $\Esym$ lies inside my 68\% interval. And both results are well below the PREX-2 based values used by Sarkar, Thapa and Sinha \cite{Sarkar2023}, where DUrca opens near $1\,\Msun$. So it supports our message that cooling does not need the very stiff PREX-2 symmetry energy.
 \item \textbf{Where it is a problem.} Their $\Lsym=29\pm8$ MeV is clearly lower than my 50--75 MeV: the 68\% intervals do not overlap and only touch at my 95\% edge (35 MeV). Their radius 12.1 km is also about 1 km smaller than my 13.2 km (my radius is about $1\sigma$ above NICER, theirs is on it). A referee will certainly ask about this.
 \item \textbf{Why the difference may be partly method.} (a) My grid cannot go below $\Lsym=30$ MeV at all, and FSUGarnet, IOPB-I and BigApple cannot go below 50, 45 and 35 MeV (no real $g_\rho$), so the low-$\Lsym$ region they prefer is barely covered by my model family. (b) In RMF models with $\omega$--$\rho$ mixing $\Lsym$ and the high-density $S(n)$ are tied together, while their metamodel lets them move separately. (c) I fix the isoscalar sector to five published sets, while they sample it. (d) The two data sets are different: cooling probes 2--3 $n_0$, their laboratory data mostly $\le n_0$. Their INDRA--FAZIA-only value $41^{+14}_{-15}$ MeV, which is less driven by nuclear structure, does overlap with my interval.
 \item \textbf{Not the same work.} They use no cooling data. So our paper is still new; but we can no longer write that $\Lsym\approx50$--75 MeV is simply ``consistent with nuclear physics'' without discussing this paper.
