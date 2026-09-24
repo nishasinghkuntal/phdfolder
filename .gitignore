@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+reports/*.aux
+reports/*.log
+reports/*.toc
+reports/*.out
