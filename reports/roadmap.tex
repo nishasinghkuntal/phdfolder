@@ -1,0 +1,133 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+
+\title{How to proceed: priorities, new results and research directions}
+\author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
+\date{24 September 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\section*{In one paragraph}
+The three papers are sound and close to submission; what they need is a few days of cleaning, not new physics. The most important change is in how paper~1 is \emph{framed}. My new calculations (Sec.~\ref{sec:what}) show that cooling does not really measure $\Lsym$: it measures the conditions at about twice saturation density, i.e.\ the proton fraction $x_p(2n_0)$, the symmetry energy $S(2n_0)$, and through them the direct Urca threshold mass $M_{\rm DU}$. $\Lsym$ is a model-dependent translation of that. Written this way, the result agrees with Montefusco et al.\ \cite{Montefusco2026} on the physical quantity (the onset mass) and explains the $\Lsym$ tension instead of being weakened by it. The next research step (paper~4) is to run the same cooling analysis with an EoS family in which $\Lsym$ and $S(2n_0)$ are not locked together.
+
+%=====================================================================
+\section{Immediate tasks (1--2 weeks)}
+%=====================================================================
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Send me \texttt{Data/cooling\_chi2\_final.csv}} (or run it yourself):
+\begin{verbatim}
+python3 combine_cooling_lab.py Data/cooling_chi2_final.csv
+\end{verbatim}
+This gives the credible intervals for $\Esym$, $\Lsym$, $S(2n_0)$, $x_p(2n_0)$, $R_{1.4}$ and $M_{\rm DU}$, the posterior probability $P(M_{\rm DU}\le1.4\,\Msun)$, and the same with the INDRA--FAZIA constraint added (Sec.~\ref{sec:if}). $M_{\rm DU}$ is currently known for 683 of the 864 EoS; run the script on the Mac, where all \texttt{MRcurve\_*\_CAT.dat} files are, after regenerating \texttt{reports/data/eos\_physical\_quantities.dat}, or send me the remaining curves.
+\item \textbf{Paper~2:} wait for the neutron-skin rerun (about 10 hours), then regenerate all its numbers (I will do this).
+\item \textbf{Fix the citations} marked \texttt{\% CHECK} in the drafts: the RX~J0822 sources (Table~1 of Potekhin et al.\ 2020), the published $\zeta$ values.
+\item \textbf{Quick robustness runs} (no new NSCool runs needed): RX~J0822 with $\sigma=0.12$ dex; the $^3P_2$-gap alternative (\texttt{durca\_sf\_altB\_vc}, already run) as a second model in a Bayesian average instead of a separate check.
+\item \textbf{Confirm the Landau mass} in the tables actually used (two \texttt{grep} commands in the analysis note).
+\item \textbf{Write to D.~Page} about the \texttt{bf\_r} problem before paper~3 is submitted, and ask which NSCool versions are affected.
+\end{enumerate}
+
+%=====================================================================
+\section{What cooling actually measures}\label{sec:what}
+%=====================================================================
+For all 864 EoS I computed $S(2n_0)$, $S(3n_0)$, $x_p(2n_0)$, $x_p(3n_0)$ and $K_{\rm sym}$ with the EoS code, and $M_{\rm DU}$ from the pipeline $M$--$R$ curves (\texttt{reports/data/eos\_physical\_quantities.dat}). The correlation of the threshold mass with each quantity:
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+ & $\Lsym$ & $\Esym$ & $S(2n_0)$ & $S(3n_0)$ & $x_p(2n_0)$ & $x_p(3n_0)$\\
+\midrule
+correlation with $M_{\rm DU}$ & $-0.69$ & $-0.72$ & $-0.82$ & $-0.71$ & $\mathbf{-0.85}$ & $-0.76$\\
+\bottomrule
+\end{tabular}
+\end{center}
+At the \emph{same} $\Esym=32.5$ and $\Lsym=65$ MeV the five models give:
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Model & $S(2n_0)$ (MeV) & $x_p(2n_0)$ & $M_{\rm DU}$ ($\Msun$)\\
+\midrule
+IOPB-I & 53.0 & 0.114 & 1.54\\
+FSUGarnet & 53.2 & 0.113 & 1.57\\
+BigApple & 54.1 & 0.115 & 2.05\\
+GM1 & 49.1 & 0.099 & no DUrca\\
+GM2 & 47.2 & 0.093 & no DUrca\\
+\bottomrule
+\end{tabular}
+\end{center}
+And conversely, the EoS with $M_{\rm DU}=1.45$--$1.55\,\Msun$ span $\Lsym=50$--85 MeV but only $x_p(2n_0)=0.111$--0.129. So:
+\begin{itemize}
+\item the cooling data select the proton fraction around $2n_0$ (and hence $M_{\rm DU}$);
+\item the $\Lsym$ interval is the image of that selection through five specific Lagrangians, and depends on them;
+\item this is why the $\Lsym$ values of cooling and of laboratory analyses can differ while the onset masses agree (1.77 vs 1.89 $\Msun$).
+\end{itemize}
+\textbf{Suggestion for paper~1:} quote $x_p(2n_0)$, $S(2n_0)$ and $M_{\rm DU}$ as the primary, less model-dependent result, and $\Lsym$ as the model-family translation. This makes the paper stronger, not weaker, against the comparison with \cite{Montefusco2026}.
+
+%=====================================================================
+\section{Combining cooling with the heavy-ion constraint}\label{sec:if}
+%=====================================================================
+Montefusco et al.\ publish, for use by others, a Gaussian form of their INDRA--FAZIA constraint in $(\Esym,\Lsym,K_{\rm sym})$ (their Appendix D). I applied it to our grid:
+\begin{itemize}
+\item within our model family it prefers $\Esym\approx28$--30 MeV and $\Lsym\approx40$--55 MeV;
+\item 28 EoS inside the cooling 68\% region are within $1\sigma$ of it (the closest is GM2 at $\Esym=29.5$, $\Lsym=50$), and 64 within $2\sigma$;
+\item our single best fit (GM2 at 32.5/80) is \emph{not}: its $\Esym$ is $\approx3.8\sigma$ above theirs.
+\end{itemize}
+So cooling and heavy-ion data are compatible, and together they point to $\Esym\approx29$ MeV and $\Lsym\approx50$ MeV. The combination is a natural new result for paper~1 (a paragraph and a figure). It needs only the final cooling $\chi^2$ file; the script \texttt{combine\_cooling\_lab.py} is ready and tested.
+
+Note: the dry run of the script on the old (frozen-tail, one-mode) $\chi^2$ file shows the expected behaviour: adding the heavy-ion constraint pulls $\Esym$ to 28--30 MeV and makes DUrca in $\le1.4\,\Msun$ stars very unlikely. Those numbers are not results; only the final $\chi^2$ file gives real ones.
+
+%=====================================================================
+\section{The main limitation, and paper~4}
+%=====================================================================
+Below $\Lsym=30$ MeV the present model family essentially stops: GM1 gives no usable EoS, GM2 survives at 20--25 MeV but DUrca then never opens, and FSUGarnet, IOPB-I and BigApple end at 35--50 MeV (no real $g_\rho$). Therefore the region preferred by the nuclear-structure part of \cite{Montefusco2026} ($\Lsym\approx20$--37 MeV) cannot be tested with our current models. And in all five models the $\omega$--$\rho$ term ties $\Lsym$ rigidly to $S(2n_0)$.
+
+\textbf{Proposal for paper~4:} repeat the cooling analysis with an EoS family where $\Lsym$ and the high-density symmetry energy are independent. Three options, in order of effort:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Density-dependent RMF} (DDME2, DDMEX, DD2 type), where the $\rho$ coupling falls with density as $g_\rho(n)=g_\rho(n_0)\exp[-a_\rho(n/n_0-1)]$. $a_\rho$ controls the high-density behaviour separately from $\Lsym$. This is exactly the parameter Thapa and Sinha tuned for PREX-2 \cite{ThapaSinha2022}, so it links naturally to their work (and is a possible collaboration). The EoS code needs rearrangement terms in the chemical potentials; the rest of the pipeline is unchanged.
+\item \textbf{Adding the scalar-isovector $\delta$ meson.} It changes the high-density symmetry energy and splits the proton and neutron Dirac masses, which enters the Landau masses and hence the cooling rates. Recent work already studies its effect on DUrca.
+\item \textbf{A metamodel-type EoS} as in \cite{Montefusco2026}, with $\Lsym$ and $K_{\rm sym}$, $Q_{\rm sym}$ free. This would allow a like-for-like comparison with their result, with cooling as the new ingredient.
+\end{enumerate}
+The key question for paper~4: \emph{with $\Lsym$ and $S(2n_0)$ decoupled, does cooling still prefer $\Lsym\approx50$--75 MeV, or does it only constrain $x_p(2n_0)$?} Either answer is publishable, and the second would reconcile cooling with the laboratory results.
+
+%=====================================================================
+\section{Further improvements of the cooling analysis}
+%=====================================================================
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Finer mass grid.} Cooling is run at 1.0, 1.4, 1.8, 2.0 $\Msun$ only, while the TOV profiles already exist every $0.1\,\Msun$. The jump from 1.4 to 1.8 $\Msun$ is exactly where DUrca switches on (median $M_{\rm DU}=1.77\,\Msun$), so the star-by-star mass choice is coarse there. Running 1.1--1.9 $\Msun$ in steps of 0.1 for the final mode costs about $864\times5\times$ a few seconds per run, i.e.\ a few hours on four workers, and allows a continuous mass (with the $1.4\pm0.3\,\Msun$ prior as a proper Bayesian prior).
+\item \textbf{Treat each star's mass as a nuisance parameter} and marginalise (sum over masses with the prior) instead of taking the minimum. This is the standard Bayesian choice and removes the discreteness.
+\item \textbf{Age uncertainties.} Characteristic spin-down ages can be wrong by factors of a few; kinematic and remnant ages are better. Add an age error per star (larger for characteristic ages) through the local slope of the cooling curve.
+\item \textbf{Average over pairing models} (gap ``a'' and ``b'', which are both already run with heating) with equal prior weight, instead of fixing one.
+\item \textbf{Use more information on Cas~A.} Besides its temperature, the observed temperature change over two decades has been used to constrain superfluidity (e.g.\ \cite{Shternin2011,Ho2015}). Its current status is debated because of instrumental effects, so it should enter as a systematic check, not a main constraint.
+\item \textbf{Report the fit quality honestly per star} (a table of $\chi^2_i$ at the best fit): it shows at once which stars drive the result.
+\end{enumerate}
+
+%=====================================================================
+\section{Suggested order of publication}
+%=====================================================================
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Paper~1 and paper~3 together} (same data set and pipeline; paper~3 is the robustness check of paper~1 and also reports a code problem that others need to know about). Paper~1 with the reframing of Sec.~\ref{sec:what} and the heavy-ion combination of Sec.~\ref{sec:if}.
+\item \textbf{Paper~2} after the skin rerun. Its message (the models give nearly equal Pb and Ca skins; cooling does not choose between PREX-2 and CREX) is robust.
+\item \textbf{Paper~4}: density-dependent or $\delta$-meson family through the same pipeline.
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\small
+\bibitem{Montefusco2026} G.~Montefusco et al., \emph{Ruling out nucleonic direct Urca cooling in low-mass neutron stars using nuclear data}, \arxiv{2609.24940} (2026).
+\bibitem{ThapaSinha2022} V.~B.~Thapa and M.~Sinha, \emph{Direct URCA process in light of PREX-2}, \arxiv{2203.02272}.
+\bibitem{Shternin2011} P.~S.~Shternin, D.~G.~Yakovlev, C.~O.~Heinke, W.~C.~G.~Ho and D.~J.~Patnaude, Mon.\ Not.\ R.\ Astron.\ Soc.\ \textbf{412}, L108 (2011), \doi{10.1111/j.1745-3933.2011.01015.x}.
+\bibitem{Ho2015} W.~C.~G.~Ho, K.~G.~Elshamouty, C.~O.~Heinke and A.~Y.~Potekhin, Phys.\ Rev.\ C \textbf{91}, 015806 (2015), \doi{10.1103/PhysRevC.91.015806}.
+\end{thebibliography}
+\end{document}
