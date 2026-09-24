@@ -1,0 +1,8 @@
+model      nuc    mine                   published             
+----------------------------------------------------------------------------
+FSUGarnet  Pb208  sk 0.1626 rc 5.4983 BA 7.821 | sk 0.162 rc 5.496 BA 7.902 | dsk +0.0006 drc +0.0023
+FSUGarnet  Ca48   sk 0.1674 rc 3.4414 BA 8.567 | sk 0.169 rc 3.426 BA 8.609 | dsk -0.0016 drc +0.0154
+IOPB-I     Pb208  sk 0.2207 rc 5.5313 BA 7.789 | sk 0.221 rc 5.520 BA 7.870 | dsk -0.0003 drc +0.0113
+IOPB-I     Ca48   sk 0.2002 rc 3.4600 BA 8.604 | sk 0.202 rc 3.446 BA 8.638 | dsk -0.0018 drc +0.0140
+BigApple   Pb208  sk 0.1493 rc 5.4989 BA 7.771 | sk 0.151 rc 5.495 BA 7.894 | dsk -0.0017 drc +0.0039
+BigApple   Ca48   sk 0.1674 rc 3.4668 BA 8.462 | sk 0.170 rc 3.447 BA 8.547 | dsk -0.0026 drc +0.0198
