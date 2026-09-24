@@ -44,15 +44,41 @@ def main():
     for m, (j, l) in PUBLISHED_JL.items():
         for nucleus in ("Pb208", "Ca48"):
             tasks.append(("valid", m, j, l, nucleus))
+    # RESUME: skip points already written by an earlier (interrupted) run
+    done_keys = set()
+    for name in ("Pb208", "Ca48"):
+        p = os.path.join(HERE, "skin_grid_fixed_%s.csv" % name)
+        if os.path.exists(p):
+            for line in open(p):
+                if line.startswith("#") or not line.strip():
+                    continue
+                b = line.split(",")
+                done_keys.add(("grid", b[0], float(b[1]), float(b[2]), name))
+    pv = os.path.join(HERE, "skin_validation_fixed.csv")
+    if os.path.exists(pv):
+        for line in open(pv):
+            if line.startswith("#") or not line.strip():
+                continue
+            b = line.split(",")
+            done_keys.add(("valid", b[0], float(b[2]), float(b[3]), b[1]))
+    tasks = [t for t in tasks
+             if (t[0], t[1], round(t[2], 2), round(t[3], 2), t[4]) not in
+             set((k[0], k[1], round(k[2], 2), round(k[3], 2), k[4]) for k in done_keys)]
+    print("%d points still to do" % len(tasks), flush=True)
     # longest (Pb) first so the pool stays busy
     tasks.sort(key=lambda t: t[4] != "Pb208")
+
+    def opener(path, header):
+        new_file = not os.path.exists(path) or os.path.getsize(path) == 0
+        fh = open(path, "a")
+        if new_file:
+            fh.write(header)
+        return fh
     outs = {}
     for name in ("Pb208", "Ca48"):
-        f = open(os.path.join(HERE, "skin_grid_fixed_%s.csv" % name), "w")
-        f.write("# model,J,L,skin_fm,r_p,r_n,r_ch,BE_per_A,converged,iterations\n")
-        outs[name] = f
-    fv = open(os.path.join(HERE, "skin_validation_fixed.csv"), "w")
-    fv.write("# model,nucleus,J,L,skin_fm,r_ch,BE_per_A,converged,iterations\n")
+        outs[name] = opener(os.path.join(HERE, "skin_grid_fixed_%s.csv" % name),
+                            "# model,J,L,skin_fm,r_p,r_n,r_ch,BE_per_A,converged,iterations\n")
+    fv = opener(pv, "# model,nucleus,J,L,skin_fm,r_ch,BE_per_A,converged,iterations\n")
     done = 0
     with Pool(4) as pool:
         for task, res in pool.imap_unordered(one, tasks):
