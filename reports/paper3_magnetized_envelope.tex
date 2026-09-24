@@ -1,0 +1,210 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\fillin}[1]{\textcolor{red}{[#1]}}
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\Teff}{T_{\rm eff}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+\newcommand{\ads}[1]{\href{https://ui.adsabs.harvard.edu/abs/#1}{ADS link}}
+
+\title{Work report 3:\\ Magnetised envelopes and the symmetry energy from neutron star cooling}
+\author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
+\date{Status as of 24 September 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\noindent\textit{How to read this report.} This report explains the work for the third paper (draft: \emph{Magnetized envelopes and the symmetry energy from neutron star cooling: a silently inactive field and what happens when it is switched on}, with Dr.~Rana Nandi). It builds directly on Report~1: same 864 EoS, same 16 stars, same statistics. All sources are listed at the end with DOIs.
+
+\begin{abstract}
+What we observe is the surface temperature, and the link between the interior and the surface is the envelope, which depends on the magnetic field. While adding magnetised envelopes to my cooling runs I found that in the distributed build of NSCool the magnetised iron envelope has no effect at all: the array that holds the surface field is never filled, so the field is zero, and at zero field the Potekhin--Yakovlev formula is \emph{exactly} the field-free one. I fixed this and checked it bit for bit. Then I gave each of the 16 stars its own dipole field from its spin-down (ATNF catalogue). The fields cover 4.6 decades, from $5.8\times10^8$ to $2.5\times10^{13}$ G, and they do not follow age: they are weak for the young central compact objects, strongest for two X-ray dim isolated neutron stars in the middle of the cooling diagram, and weak again for the two oldest stars. Using each star's own field improves the fit from $\chi^2/N=1.397$ to 1.335 ($0.79\sigma$, not decisive), while one global $10^{12}$ G field makes it worse (1.467). The symmetry energy slope stays $\Lsym=50$--75 MeV in all cases, so the result of Report~1 is robust against the envelope field.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Introduction}
+%=====================================================================
+The envelope is the outer few metres of the star where the temperature drops from the almost isothermal interior to the surface. A cooling code gives the temperature $T_b$ at the bottom of the envelope, and an envelope relation $\Teff(T_b)$ converts it to what we observe \cite{GPE1983,HernquistApplegate1984,PCY1997}. In Report~1 I used iron envelopes, and carbon for the two stars with carbon atmospheres.
+
+A magnetic field changes this relation. Electrons conduct heat easily along field lines and badly across them, so the surface temperature is not uniform and the average $\Teff$ at fixed $T_b$ shifts. Potekhin and Yakovlev \cite{PY2001} give a fit for an iron envelope with a dipole field, which is the standard treatment (see also the review \cite{PotekhinPonsPage2015}). Since the errors on the observed temperatures are a few hundredths of a dex to 0.1 dex, the field can matter for a symmetry energy constraint from cooling \cite{Sarkar2023}. So I wanted to check whether the result of Report~1 survives when the field is included.
+
+%=====================================================================
+\section{A magnetised envelope that was not magnetised}\label{sec:bug}
+%=====================================================================
+\subsection{What I found}
+In NSCool the envelope is chosen with an integer \texttt{IFTEFF}. \texttt{IFTEFF}$=4$ selects the magnetised iron relation of \cite{PY2001}, coded as \texttt{fteff\_field\_iron(Tb, bfield)}. The calling routine passes \texttt{bf\_r(imax)}, the surface value of the radial field array. But this array is never set in the distributed build: the only code that sets it is in the field-evolution include file \texttt{Bfield/Bfield\_2.inc.f}, which is not compiled (the user guide says field evolution is no longer implemented). So \texttt{bf\_r(imax)} arrives as an uninitialised common block value, in practice zero.
+
+\subsection{Why it is exact and not approximate}
+With $B_{12}=B/10^{12}$ G and $T_9=T_b/10^9$ K, the formula of \cite{PY2001} uses
+\begin{equation}
+\beta = 0.074\,\frac{\sqrt{B_{12}}}{T_9^{0.45}},\qquad
+\Teff = \Teff^{(0)}\left[\frac{1+a_1\beta^2+a_2\beta^3+0.007\,a_3\beta^4}{1+a_3\beta^2}\right]^{1/4},
+\end{equation}
+where $\Teff^{(0)}$ is the field-free iron result and $a_1$, $a_2$, $a_3$ depend on $T_9$ (and $a_3$ also on the compactness). At $B=0$, $\beta=0$, the bracket is exactly 1 whatever the $a_i$ are, and $\Teff=\Teff^{(0)}$. So the run with \texttt{IFTEFF}$=4$ gives exactly the field-free answer, and it looks as if the field does not matter.
+
+\subsection{Test}
+Same EoS at $1.4\,\Msun$: \texttt{IFTEFF}$=4$ with $B=0$ and \texttt{IFTEFF}$=3$ with $\eta=0$ give the same time grid and the same $\Teff$ at all 294 output steps (maximum difference 0.000 K); the only difference in the output is one banner line. After I assign the field array from the input \texttt{BFIELD0} and run $B=10^{12}$ G, the curve separates as it must. Both statements are kept as a regression test (mode \texttt{durca\_sf\_vc\_magB0} in \texttt{run\_cooling\_prl.py} is the $B=0$ control), so that a clean rebuild of NSCool cannot bring the problem back silently.
+
+\subsection{Scope}
+This is a problem of the distributed build, not of the physics in \cite{PY2001}, whose formula is correctly coded, and it is not a criticism of a code that is freely available and very useful. But any result that used \texttt{IFTEFF}$=4$ with this build and found that the field hardly matters should be checked again. \fillin{we should inform D.~Page before submission}
+
+%=====================================================================
+\section{The magnetic fields of the 16 stars}\label{sec:fields}
+%=====================================================================
+For the 13 pulsars I take $P$ and $\dot P$ from the ATNF Pulsar Catalogue, version 2.6.0 \cite{ATNF2005} (\url{https://www.atnf.csiro.au/research/pulsar/psrcat/}), and compute the characteristic dipole field
+\begin{equation}
+B = 3.2\times10^{19}\sqrt{P\dot P}~{\rm G},
+\end{equation}
+which is the same definition the catalogue uses. I recomputed instead of copying and checked four objects against published values. Cas~A and XMMU~J1732 show no pulsations \cite{HoHeinke2009,Klochkov2013}, and RX~J0822 pulses at $P=0.112$ s but its $\dot P$ is not good enough for a field. All three are central compact objects, a class known for weak fields, $B\lesssim10^{11}$ G (``anti-magnetars'' \cite{DeLuca2017}), so I give them the field-free track.
+
+\begin{table}[h]
+\centering
+\caption{Surface dipole fields.}\label{tab:fields}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{llcc}
+\toprule
+Source & ATNF name & $\log t$ & $\log(B/{\rm G})$\\
+\midrule
+Cas A & -- & 2.51 & $\lesssim11$\\
+XMMU J1732 & -- & 3.48 & $\lesssim11$\\
+RX J0822 & -- & 3.57 & $\lesssim11$\\
+1E 1207 & J1210$-$5226 & 3.85 & 10.99\\
+PSR B0833 & J0835$-$4510 & 4.05 & 12.53\\
+PSR B1706 & J1709$-$4429 & 4.24 & 12.50\\
+PSR J0538 & J0538+2817 & 4.48 & 11.87\\
+PSR B2334 & J2337+6151 & 4.61 & 13.00\\
+PSR B0656 & J0659+1414 & 5.05 & 12.67\\
+Geminga & J0633+1746 & 5.53 & 12.21\\
+RX J1856 & J1856$-$3754 & 5.70 & 13.17\\
+PSR B1055 & J1057$-$5226 & 5.73 & 12.03\\
+RX J0720 & J0720$-$3125 & 5.78 & 13.39\\
+PSR J2043 & J2043+2740 & 5.88 & 11.55\\
+PSR J0437 & J0437$-$4715 & 6.85 & 8.76\\
+PSR B0950 & J0953+0755 & 7.24 & 11.39\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Not a trend but classes.} Over the 13 measured fields the rank correlation of $\log B$ with $\log t$ is $\rho=-0.19$ ($p=0.54$), so there is no trend with age. Instead:
+\begin{center}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccl}
+\toprule
+Class & $n$ & $\log t$ & $B$ (G)\\
+\midrule
+central compact objects & 3 & 2.5--3.6 & $\lesssim10^{11}$ (assumed)\\
+ordinary pulsars & 9 & 3.9--5.9 & $9.8\times10^{10}$--$9.9\times10^{12}$\\
+X-ray dim isolated NS & 2 & 5.7--5.8 & $1.5$--$2.5\times10^{13}$\\
+two oldest & 2 & 6.9--7.2 & $5.8\times10^{8}$--$2.4\times10^{11}$\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+The field goes weak, strong, strongest, weak again across the cooling diagram. So one global field gives an error with different signs in different parts of the diagram, and no single value can remove it. This is the reason to give every star its own field.
+
+%=====================================================================
+\section{Method}
+%=====================================================================
+Everything is the same as the final analysis of Report~1 (864 EoS, five models with only the isovector couplings varied, vortex creep heating, carbon envelopes for Cas~A and XMMU~J1732, corrected RX~J0822, mass prior $1.4\pm0.3\,\Msun$). Only the iron envelope is replaced by the magnetised one. I computed cooling curves (modes \texttt{durca\_sf\_vc\_magB11} to \texttt{magB14}) for $B=0,\,10^{11},\,10^{12},\,10^{13},\,10^{14}$ G at $M=1.0,\,1.4,\,1.8,\,2.0\,\Msun$. For a star with field $B$, the predicted $\log\Teff$ at its age is interpolated linearly in $\log B$ between the two nearest grid fields; stars with $B\le10^{11}$ G use the field-free track. I compare three fits:
+\begin{enumerate}
+\item $B=0$ for all stars (must reproduce Report~1, a check of the pipeline);
+\item $B=10^{12}$ G for all stars (the simple global choice);
+\item each star's own field (Table~\ref{tab:fields}).
+\end{enumerate}
+
+%=====================================================================
+\section{Results}
+%=====================================================================
+\subsection{Size of the envelope effect}
+\begin{table}[h]
+\centering
+\caption{Change of $\log\Teff$ at fixed age, magnetised minus field-free iron envelope, at $1.4\,\Msun$, averaged over all 864 EoS (spread across EoS at most 0.02 dex).}\label{tab:shift}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{ccccc}
+\toprule
+$\log t$ & $10^{11}$ G & $10^{12}$ G & $10^{13}$ G & $10^{14}$ G\\
+\midrule
+2 & $-0.014$ & $-0.030$ & $-0.019$ & $+0.022$\\
+3 & $-0.020$ & $-0.032$ & $-0.014$ & $+0.036$\\
+4 & $-0.022$ & $-0.031$ & $-0.010$ & $+0.043$\\
+5 & $-0.020$ & $-0.025$ & $-0.004$ & $+0.040$\\
+6 & $+0.014$ & $+0.016$ & $-0.001$ & $-0.030$\\
+7 & $+0.001$ & $+0.000$ & $-0.004$ & $-0.013$\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+The shift reaches $-0.032$ dex at $10^{12}$ G and $+0.043$ dex at $10^{14}$ G during the neutrino era, i.e.\ a third to half of a typical observational error (0.10 dex) and similar to the best ones (0.05 dex). Also, the shift is \emph{not monotonic in $B$}: it deepens from $10^{11}$ to $10^{12}$ G, is smaller at $10^{13}$ G and changes sign at $10^{14}$ G, for every one of the 864 EoS. This comes from the anisotropic conduction: the effective conductivity is $\kappa_\parallel\cos^2\theta+\kappa_\perp\sin^2\theta$, so near the poles (radial field) the envelope insulates less and near the equator (tangential field) more, and for a dipole the two partly cancel in a way that depends on $B$ \cite{PY2001}. So a single correction factor or one typical field cannot represent the effect.
+
+\subsection{Effect on the fit and on $\Lsym$}
+\begin{table}[h]
+\centering
+\caption{Three treatments of the field (same 864 EoS and 16 stars).}\label{tab:fits}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccc}
+\toprule
+Field treatment & $\chi^2/N$ & $\chi^2/{\rm dof}$ & $\Lsym$ (68\%)\\
+\midrule
+$B=0$ for every star (Report~1) & 1.397 & 1.596 & [50, 75]\\
+$B=10^{12}$ G for every star & 1.467 & 1.677 & [50, 75]\\
+each star's own $B$ & 1.335 & 1.525 & [50, 75]\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+\begin{itemize}
+\item \textbf{One global field makes the fit worse.} $10^{12}$ G is close to the sample median ($1.6\times10^{12}$ G) and looks reasonable, but it raises $\chi^2/N$ from 1.397 to 1.467. It is worse than leaving the field out.
+\item \textbf{The measured fields make it better}, to 1.335: $-0.99$ in total $\chi^2$, $0.79\sigma$ after the PDG scale factor \cite{PDG2024}. This is modest and I do not claim the data demand the field. What is clear is the order: own field better than no field, and no field better than one global field.
+\item \textbf{$\Lsym$ does not change}: [50, 75] MeV in all three cases. The field varies across the cooling diagram in a systematic way, and $\Lsym$ acts by tilting the cooling track against age, so it was possible that the field would pretend to be a symmetry energy effect. It does not; the field changes the fit quality but not the inferred $\Lsym$.
+\end{itemize}
+
+\subsection{Significance}
+\begin{enumerate}
+\item A silent problem in a widely used public code is identified, explained exactly, and fixed with a test.
+\item The cooling constraint $\Lsym=50$--75 MeV of Report~1 is robust against magnetised envelopes.
+\item For population fits, fields should be assigned star by star; a single field is worse than none.
+\end{enumerate}
+
+%=====================================================================
+\section{Checks and systematics}
+%=====================================================================
+\begin{itemize}
+\item Bit-for-bit control: \texttt{IFTEFF}$=4$, $B=0$ equals \texttt{IFTEFF}$=3$, $\eta=0$ at all 294 steps; with the patch and $B=10^{12}$ G the curves differ.
+\item The $B=0$ fit reproduces Report~1 ($\chi^2/N=1.397$).
+\item All field grid points were computed; no interpolation falls back on a neighbour.
+\item Fields recomputed from $P$, $\dot P$ and compared with published values for four objects.
+\item \textbf{Anti-magnetar assumption}: giving the three CCOs $10^{12}$ G instead raises the best $\chi^2$ from 21.35 to 23.42 ($\chi^2/N$ 1.335 $\to$ 1.464, $1.16\sigma$). The assumption comes from the literature \cite{DeLuca2017}, not from this fit, and the data agree with it. Since Cas~A and XMMU~J1732 keep the carbon envelope in both cases, this test really moves only RX~J0822.
+\item \textbf{Limitations}: dipole geometry and angle-averaged $\Teff$ only; constant field in time (a decaying field was stronger in the past, so the young-age shift is a lower estimate); the characteristic field assumes dipole braking; no magnetised carbon envelope is available in this build, so the two carbon stars use a field-free carbon envelope (consistent with them being anti-magnetars, but an assumption).
+\end{itemize}
+
+%=====================================================================
+\begin{thebibliography}{99}
+\small
+\bibitem{GPE1983} E.~H.~Gudmundsson, C.~J.~Pethick and R.~I.~Epstein, Astrophys.\ J.\ \textbf{272}, 286 (1983), \doi{10.1086/161292}.
+\bibitem{HernquistApplegate1984} L.~Hernquist and J.~H.~Applegate, Astrophys.\ J.\ \textbf{287}, 244 (1984), \doi{10.1086/162683}.
+\bibitem{PCY1997} A.~Y.~Potekhin, G.~Chabrier and D.~G.~Yakovlev, Astron.\ Astrophys.\ \textbf{323}, 415 (1997), \ads{1997A\%26A...323..415P}.
+\bibitem{PY2001} A.~Y.~Potekhin and D.~G.~Yakovlev, Astron.\ Astrophys.\ \textbf{374}, 213 (2001), \doi{10.1051/0004-6361:20010621}.
+\bibitem{PotekhinPonsPage2015} A.~Y.~Potekhin, J.~A.~Pons and D.~Page, Space Sci.\ Rev.\ \textbf{191}, 239 (2015), \doi{10.1007/s11214-015-0180-9}.
+\bibitem{Sarkar2023} T.~Sarkar, V.~B.~Thapa and M.~Sinha, Phys.\ Rev.\ C \textbf{108}, 035801 (2023), \doi{10.1103/PhysRevC.108.035801}.
+\bibitem{NSCool} D.~Page, \emph{NSCool: Neutron star cooling code}, Astrophysics Source Code Library, \href{https://ascl.net/1609.009}{ascl:1609.009} (2016).
+\bibitem{ATNF2005} R.~N.~Manchester, G.~B.~Hobbs, A.~Teoh and M.~Hobbs, Astron.\ J.\ \textbf{129}, 1993 (2005), \doi{10.1086/428488}.
+\bibitem{HoHeinke2009} W.~C.~G.~Ho and C.~O.~Heinke, Nature \textbf{462}, 71 (2009), \doi{10.1038/nature08525}.
+\bibitem{Klochkov2013} D.~Klochkov et al., Astron.\ Astrophys.\ \textbf{556}, A41 (2013), \arxiv{1307.1230}, \ads{2013A\%26A...556A..41K}.
+\bibitem{DeLuca2017} A.~De~Luca, J.\ Phys.\ Conf.\ Ser.\ \textbf{932}, 012006 (2017), \doi{10.1088/1742-6596/932/1/012006}.
+\bibitem{PDG2024} S.~Navas et al.\ (Particle Data Group), Phys.\ Rev.\ D \textbf{110}, 030001 (2024), \doi{10.1103/PhysRevD.110.030001}.
+\bibitem{Vigano2013} D.~Vigan\`o, N.~Rea, J.~A.~Pons, R.~Perna, D.~N.~Aguilera and J.~A.~Miralles, Mon.\ Not.\ R.\ Astron.\ Soc.\ \textbf{434}, 123 (2013), \doi{10.1093/mnras/stt1008} (magneto-thermal evolution of the same classes of stars).
+\end{thebibliography}
+\end{document}

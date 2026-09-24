@@ -1,0 +1,243 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\fillin}[1]{\textcolor{red}{[#1]}}
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\DRnp}{\Delta R_{np}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+
+\title{Work report 2:\\ Neutron skins of $^{208}$Pb and $^{48}$Ca from the cooling-constrained models, and comparison with PREX-2 and CREX}
+\author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
+\date{Status as of 24 September 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\noindent\textit{How to read this report.} This report explains the work for the second paper (draft: \emph{Neutron skins of $^{208}$Pb and $^{48}$Ca predicted from cooling-constrained relativistic mean field models}, with Dr.~Rana Nandi). It uses the same Lagrangian and the same $(\Esym,\Lsym)$ grid as Report~1. All sources are listed at the end with DOIs.
+
+\begin{abstract}
+In Report~1 the cooling of neutron stars gave $\Lsym=50$--75 MeV. Laboratory experiments measure the same physics through the neutron skin thickness $\DRnp=\langle r^2\rangle_n^{1/2}-\langle r^2\rangle_p^{1/2}$ of heavy nuclei. Usually people compare with the skin through a published $\DRnp$--$\Lsym$ correlation fitted across many models. I did not want to borrow such a correlation, so I wrote a spherical relativistic Hartree code that computes $^{208}$Pb and $^{48}$Ca with \emph{exactly the same couplings} that made the neutron star EoS. The code reproduces the published skins of BigApple, FSUGarnet and IOPB-I to 0.7--4.5 milli-fermi, the charge radii to 0.03 fm and binding energies to 0.08 MeV per nucleon, and gives the correct negative skins for $N=Z$ nuclei. Comparing with PREX-2 and CREX I get, at 68\%, $\Lsym=50$--95 MeV and $\Esym=35.5$--43 MeV from PREX-2 alone, and $\Lsym=50$--70 MeV and $\Esym=26.5$--32.5 MeV from CREX alone. The two do not overlap in $\Esym$. Cooling does not clearly prefer one experiment: the joint $\chi^2$ cost is a bit lower for PREX-2, but the marginal $\Esym$ interval of cooling overlaps with CREX and not with PREX-2. The deeper reason is that these models give almost equal skins for Pb and Ca (0.177 and 0.174 fm at the joint best fit), while the experiments want 0.283 and 0.121 fm. I also show that GM1 and GM2 cannot give a skin at all, because only $g_i/m_i$ was published for them.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Introduction}
+%=====================================================================
+In a heavy nucleus with $N>Z$ the extra neutrons are pushed out to the surface by the symmetry energy. How far they go depends on the pressure of neutron-rich matter just above saturation, which is set by $\Lsym$. So the neutron skin thickness $\DRnp$ of $^{208}$Pb is strongly correlated with $\Lsym$ \cite{Brown2000,TypelBrown2001,Furnstahl2002,RocaMaza2011}, and also with the radius of neutron stars \cite{HorowitzPiekarewicz2001b}.
+
+The skin can be measured cleanly with parity-violating electron scattering, because the $Z^0$ couples mainly to neutrons \cite{Horowitz2001PV}. Two such experiments were done at Jefferson Lab:
+\begin{itemize}
+\item \textbf{PREX-2}: $\DRnp(^{208}{\rm Pb})=0.283\pm0.071$ fm \cite{PREX2};
+\item \textbf{CREX}: $\DRnp(^{48}{\rm Ca})=0.121\pm0.026\,({\rm exp})\pm0.024\,({\rm model})$ fm \cite{CREX}. I combine the two errors in quadrature, $\pm0.035$ fm.
+\end{itemize}
+PREX-2 wants a thick skin (stiff symmetry energy, Reed et al.\ get $\Lsym=106\pm37$ MeV \cite{Reed2021}), CREX a thin one (soft). No mean field model reproduces both well; this is the PREX--CREX puzzle \cite{Reinhard2022}.
+
+The paper of Sarkar, Thapa and Sinha \cite{Sarkar2023} took the PREX-2 values of $\Esym$ and $\Lsym$ as input for cooling. In my work the direction is reversed: I first get $\Lsym$ and $\Esym$ from cooling (Report~1), then I \emph{predict} the skins with the same Lagrangian and compare them with both experiments.
+
+%=====================================================================
+\section{Method: finite nucleus RMF}
+%=====================================================================
+\subsection{Equations}
+The Lagrangian is exactly the one of Report~1. In a finite nucleus the meson fields depend on $r$, so (with $\Phi=g_\sigma\sigma$, $W=g_\omega\omega_0$, $R=g_\rho\rho_{03}$)
+\begin{align}
+-\nabla^2\Phi + m_\sigma^2\Phi &= g_\sigma^2\big[n_s - bM\Phi^2 - c\Phi^3\big],\\
+-\nabla^2W + m_\omega^2W &= g_\omega^2\big[n_v - 2\Lambda_{\omega\rho}R^2W - \tfrac{\zeta}{6}W^3\big],\\
+-\nabla^2R + m_\rho^2R &= g_\rho^2\big[\tfrac{n_3}{2} - 2\Lambda_{\omega\rho}W^2R\big],
+\end{align}
+plus the Coulomb field from the proton density. If $\nabla^2\to0$ these become the uniform matter equations of Report~1 term by term, which is my first check that the equations are right. The nucleons obey the radial Dirac equations \cite{HorowitzSerot1981}
+\begin{align}
+\frac{dG}{dr} &= -\frac{\kappa}{r}G + \big[\varepsilon - V(r) + M^*(r)\big]F,\\
+\frac{dF}{dr} &= +\frac{\kappa}{r}F - \big[\varepsilon - V(r) - M^*(r)\big]G,
+\end{align}
+with $M^*=M-\Phi$ and $V=W\pm R/2+V_{\rm Coul}$ ($+$ for protons). Densities are $n_{v,s}=\sum_{\rm occ}(2j+1)(G^2\pm F^2)/4\pi r^2$. I solve everything self-consistently (\texttt{finite\_nucleus\_rmf.py}); pairing is not included, which is fine because $^{208}$Pb and $^{48}$Ca are doubly magic.
+
+\subsection{Numerics}
+\begin{itemize}
+\item \textbf{Levels} are found by Sturm sequence bisection: integrating outward, the number of nodes of $G$ equals the number of eigenvalues below the trial energy. This count is monotonic in energy, so bisection cannot skip or mislabel a level. All levels are searched together as numpy arrays, otherwise Python is too slow for the grid.
+\item \textbf{Meson fields} are solved with the exact Green's function of $-\nabla^2+m^2$ instead of finite differences, with exponentials arranged so nothing overflows. Finite differences were unstable because $m_\omega h\sim0.2$.
+\item \textbf{Basis}: taken much larger than the occupied levels. At the soft corner of the grid the bound neutron levels of $^{208}$Pb hold exactly 126 neutrons with no margin, and a small basis failed there.
+\item \textbf{Starting fields}: the $\rho$ field must start negative for a neutron-rich nucleus and must include the $\omega$--$\rho$ term. An earlier version got this wrong and silently lost every low-$\Lsym$ point, which is exactly where CREX points. After fixing, the isovector field is also damped in the first sweeps.
+\item \textbf{Convergence} is judged on the skin itself (stable over several sweeps), and occupations are frozen once the fields have settled, to avoid oscillation between two close levels near the Fermi surface.
+\item \textbf{Sanity gate}: if the central density collapses the result is rejected instead of being returned.
+\item Observables: $r_n$, $r_p$, $\DRnp$, charge radius (folding in the nucleon form factors, $r_p^2=0.7056$ fm$^2$, $r_n^2=-0.1161$ fm$^2$), and binding energy with centre-of-mass correction.
+\end{itemize}
+
+\subsection{Meson masses are needed here}
+In uniform matter only $C_i^2=(g_i/m_i)^2$ enters. In a nucleus $m_\sigma$ sets the range $1/m_\sigma$ of the scalar field and hence the surface thickness and radius. Using the generic $m_\sigma=550$ MeV for models whose real value is about 495 MeV makes the surface too sharp: the charge radius is 0.06--0.12 fm too small and the binding 0.50--1.19 MeV per nucleon too large. So I use each model's own meson masses from Table~1 of Das et al.\ \cite{Das2021}:
+\begin{center}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccc}
+\toprule
+Model & $m_\sigma/M$ & $m_\omega/M$ & $m_\rho/M$\\
+\midrule
+FSUGarnet & 0.529 & 0.833 & 0.812\\
+IOPB-I & 0.533 & 0.833 & 0.812\\
+BigApple & 0.525 & 0.833 & 0.812\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+with $M=939$ MeV. I keep $C_\sigma^2$ fixed and set $g_\sigma=C_\sigma m_\sigma$. Then the uniform matter limit, and so every EoS and cooling curve of Report~1, stays exactly the same.
+
+\subsection{Why GM1 and GM2 are left out}
+Glendenning and Moszkowski \cite{GM1991} fitted only uniform matter and published only $(g/m)^2$ (e.g.\ 11.79, 7.149, 4.411 fm$^2$ for GM1). No meson mass is given, so $m_\sigma$ and therefore the nuclear surface are simply not defined; any skin would be a property of the mass I invent. This is not a mistake of the GM fits, but it means they cannot be used here. They also fail numerically for $^{208}$Pb: the weak scalar field ($M^*/M=0.70$, 0.78) gives a weak spin--orbit force, the orbitals needed for $N=126$ do not bind, and the nucleus collapses. Just to describe the failure, with an assumed $m_\sigma=550$ MeV, GM1 converges for $^{16}$O, $^{40}$Ca, $^{48}$Ca (over-bound by 0.52--0.62 MeV/A) and GM2 only for $^{16}$O and $^{40}$Ca (over-bound by 2.64 and 1.23 MeV/A). So the skin study uses the three models FSUGarnet, IOPB-I and BigApple.
+
+\subsection{The skin grid}
+One $^{208}$Pb calculation takes 1--4 minutes, so I did not run all 864 EoS. \texttt{run\_skin\_grid.py} runs a sub-grid: $\Esym=26.5,\,31,\,35.5,\,40,\,43$ MeV and five $\Lsym$ values from each model's lowest allowed $\Lsym$ (35 BigApple, 45 IOPB-I, 50 FSUGarnet) to 130 MeV, for both nuclei, with 451 mesh points (this mesh reproduces the published skins to 0.004 fm and is four times faster than 701 points). This gives 24--25 converged points per model and nucleus (\texttt{skin\_grid\_Pb208.csv}, \texttt{skin\_grid\_Ca48.csv}). $\Esym=25$ MeV is not used: there $^{208}$Pb does not bind.
+
+The skins are then represented per model by the surface
+\begin{equation}
+\DRnp = a + b\Lsym + c\Lsym^2 + d\Esym + e\,\Esym\Lsym .
+\end{equation}
+The $\Lsym^2$ term is needed: the skin rises fast with $\Lsym$ and then saturates. A linear fit leaves rms residuals of 0.015--0.018 fm for Pb (half the PREX-2 error), while this surface gives 0.0034--0.0073 fm. I add this residual in quadrature to the experimental errors.
+
+%=====================================================================
+\section{Validation of the finite nucleus code}
+%=====================================================================
+\begin{table}[h]
+\centering
+\caption{My skins against Das et al.\ \cite{Das2021} (their Table~3) at each model's own published $\Esym$, $\Lsym$ (their Table~2). Nothing is adjusted.}\label{tab:valid}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcccccc}
+\toprule
+ & & & \multicolumn{2}{c}{$\DRnp(^{208}{\rm Pb})$ fm} & \multicolumn{2}{c}{$\DRnp(^{48}{\rm Ca})$ fm}\\
+Model & $\Esym$ & $\Lsym$ & mine & published & mine & published\\
+\midrule
+BigApple & 31.32 & 39.80 & 0.1535 & 0.151 & 0.1707 & 0.170\\
+FSUGarnet & 30.95 & 51.04 & 0.1628 & 0.162 & 0.1655 & 0.169\\
+IOPB-I & 33.30 & 63.58 & 0.2226 & 0.221 & 0.1975 & 0.202\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+\begin{itemize}
+\item Skins agree to 0.7--4.5 milli-fermi, 15 to 100 times smaller than the PREX-2 error.
+\item Charge radii agree to 0.03 fm. Binding energies are 0.08 MeV per nucleon low in a systematic way, which fits with the pairing energy that the published calculation includes and mine does not. It does not affect the skin, which is a difference of radii.
+\item One model over $A=16$--208 ($^{16}$O, $^{40}$Ca, $^{48}$Ca, $^{208}$Pb) converges everywhere, with binding energies within 0.09 MeV per nucleon of experiment.
+\item The $N=Z$ nuclei come out with \emph{negative} skins, $-0.030$ fm ($^{16}$O) and $-0.053$ fm ($^{40}$Ca), which is correct because Coulomb pushes protons out.
+\item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls from 0.0024--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0003--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} near $\Lsym\approx80$ MeV, and in the cooling band 50--75 MeV it is 0.0017--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
+\item Benchmarks with NL3 \cite{NL3} and FSUGold \cite{ToddRutel2005} are also in the code (published Pb skins 0.280 and 0.207 fm). \fillin{add my numbers for these two}
+\end{itemize}
+
+%=====================================================================
+\section{Comparison with PREX-2 and CREX, and constraints}
+%=====================================================================
+\subsection{The statistics}
+For each experiment separately,
+\begin{equation}
+\chi^2_{\rm PREX}(\Esym,\Lsym)=\frac{(\DRnp^{\rm Pb}-0.283)^2}{0.071^2+\sigma_{\rm fit}^2},\qquad
+\chi^2_{\rm CREX}(\Esym,\Lsym)=\frac{(\DRnp^{\rm Ca}-0.121)^2}{0.035^2+\sigma_{\rm fit}^2},
+\end{equation}
+over the three models and the reduced grid ($\Esym\ge26$ MeV). I turn these into likelihoods and get 68\% intervals exactly like in Report~1. When I combine with cooling I multiply by the cooling likelihood evaluated \emph{on the same reduced grid}, so that everything is consistent. Only my predicted skins and the measured skins enter; no published $\Lsym$ from the experiments is used anywhere.
+
+\subsection{The tension appears in my own calculation}
+At the point that best fits both experiments together the predictions are $\DRnp(^{208}{\rm Pb})\simeq0.177$ fm and $\DRnp(^{48}{\rm Ca})\simeq0.174$ fm, almost equal, while the experiments want 0.283 and 0.121 fm (Table~\ref{tab:pred}). The joint $\chi^2$ there is 4.42. With two data points and two parameters there are no degrees of freedom, so I use this number only to show how far apart the two experiments pull inside this model family, not as a goodness of fit. This is the PREX--CREX puzzle \cite{Reinhard2022} reproduced by my own code: both skins respond to the same isovector couplings in the same direction \cite{Furnstahl2002}.
+
+\begin{table}[h]
+\centering
+\caption{Skins at the joint optimum.}\label{tab:pred}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccc}
+\toprule
+Nucleus & predicted (fm) & measured (fm) & difference\\
+\midrule
+$^{208}$Pb & 0.177 & $0.283\pm0.071$ \cite{PREX2} & $-1.5\sigma$\\
+$^{48}$Ca & 0.174 & $0.121\pm0.035$ \cite{CREX} & $+1.5\sigma$\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\subsection{Constraints on $\Esym$ and $\Lsym$}
+\begin{table}[h]
+\centering
+\caption{68\% intervals, all with the same three models and the same reduced grid.}\label{tab:constraints}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
+\toprule
+Probe & $\Lsym$ (MeV) & $\Esym$ (MeV)\\
+\midrule
+cooling alone$^a$ & [45, 70] & [26.5, 34.0]\\
+PREX-2 alone & [50, 95] & [35.5, 43.0]\\
+CREX alone & [50, 70] & [26.5, 32.5]\\
+cooling + PREX-2 & [50, 75] & [28.0, 35.5]\\
+cooling + CREX & [50, 70] & [26.5, 34.0]\\
+cooling + both$^b$ & [45, 70] & [26.5, 34.0]\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\smallskip
+{\footnotesize $^a$ One grid step lower than the 50--75 MeV of Report~1; see Sec.~\ref{sec:reconcile}.\\
+$^b$ Only for completeness, not a recommended result: PREX-2 and CREX disagree inside this model family, so they almost cancel and cooling sets the answer.}
+\end{table}
+PREX-2 and CREX do not overlap in $\Esym$. My PREX-2-alone $\Lsym$ interval is consistent with, and narrower than, the $106\pm37$ MeV of Reed et al.\ \cite{Reed2021}, because here $\Esym$ is free to move instead of being fixed.
+
+\subsection{Why cooling gives 45--70 here and 50--75 in Report~1}\label{sec:reconcile}
+Report~1 uses all five models and the full $\Esym$ range. Here I must drop GM1 and GM2 (no meson masses) and $\Esym=25$ MeV ($^{208}$Pb does not bind). Each restriction alone leaves $[50,75]$; only both together, which remove 397 of the 864 EoS and the whole soft-$\Esym$ edge of the three remaining models, move it down by one 5 MeV step. The two intervals overlap over four fifths of their length.
+
+\subsection{Does cooling prefer PREX-2 or CREX?}
+Two natural measures give opposite answers, so I report both:
+\begin{enumerate}
+\item \textbf{Joint cost}: the extra $\chi^2$ of fitting cooling and one experiment together, beyond fitting each alone, is 0.78 ($0.9\sigma$) for PREX-2 and 2.07 ($1.4\sigma$) for CREX. This looks like PREX-2 is closer, but the difference, 1.29 in $\chi^2$ (about $1.1\sigma$), does not discriminate.
+\item \textbf{Marginal posteriors}: the cooling $\Esym$ interval [26.5, 34.0] does not touch PREX-2's [35.5, 43.0] and covers almost all of CREX's [26.5, 32.5]. Adding CREX to cooling changes nothing, adding PREX-2 shifts it up to [28.0, 35.5]. The peaks are at $\Esym\simeq32.5$ (cooling), 26.5 (CREX) and 41.5 MeV (PREX-2).
+\end{enumerate}
+The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the grid (its own minimum $\chi^2=0.00$) but only at $\Esym\simeq41.5$ MeV, where cooling is poor; CREX can never be fitted exactly (minimum 1.03), even though its preferred region is the same as cooling's. \textbf{So my conclusion is that cooling does not discriminate between the two experiments}, and which one looks closer depends on the statistic. An earlier version of this work gave only the joint cost; I now think quoting only one of them would be wrong.
+
+\subsection{Significance}
+\begin{itemize}
+\item The skin is now a prediction of the same Lagrangian that is constrained by cooling, not a number taken from a cross-model correlation with $\pm0.02$ fm scatter.
+\item The predicted skins sit between the two measurements and exclude neither.
+\item The obstacle is structural: these mean field models give nearly equal skins for Pb and Ca. A model with more isovector freedom (for example a $\delta$ meson or density-dependent couplings) would be needed to separate them.
+\item Any neutron star EoS that is to be compared with skin data must come from a parametrisation that also gives its meson masses.
+\end{itemize}
+
+%=====================================================================
+\section{Checks and verification}
+%=====================================================================
+\begin{enumerate}
+\item $\nabla^2\to0$ limit equals the EoS code equations; energy expression reduces to the uniform-matter energy density term by term (this fixed the signs of the $\zeta$ and $\Lambda_{\omega\rho}$ terms).
+\item Validation against Das et al.\ (Table~\ref{tab:valid}), negative skins for $N=Z$, $A=16$--208 run.
+\item The meson mass values were checked against Table~1 of Ref.~\cite{Das2021}; an older comment in the code had the wrong reference and author list for FSUGarnet and IOPB-I, which I corrected.
+\item Only converged points are used (flag in the CSV files).
+\item Fit residual measured and added to the errors.
+\item \textbf{Things I noticed while writing this report and still have to look at:} (i) a few $^{48}$Ca points are not smooth in $\Lsym$ (for example BigApple at $\Esym=35.5$, $\Lsym=106.25$ has $B/A=-9.33$ MeV and a smaller charge radius than its neighbours), which could be a different occupation converging; they pass the convergence flag, so I should check the level scheme there. (ii) The older script \texttt{skin\_constraint.py} refers to a variable that no longer exists in \texttt{finite\_nucleus\_rmf.py}; the working script is \texttt{skin\_constraints.py}. (iii) Running \texttt{skin\_constraints.py} today, with its simpler one-sigma band method, gives joint $\chi^2_{\min}=4.46$--4.70 per model and CREX-alone bands that extend below the computed $\Lsym$ range; these are extrapolations, and the numbers quoted above come from the likelihood analysis on the computed grid.
+\end{enumerate}
+
+%=====================================================================
+\begin{thebibliography}{99}
+\small
+\bibitem{PREX2} D.~Adhikari et al.\ (PREX Collaboration), Phys.\ Rev.\ Lett.\ \textbf{126}, 172502 (2021), \doi{10.1103/PhysRevLett.126.172502}.
+\bibitem{CREX} D.~Adhikari et al.\ (CREX Collaboration), Phys.\ Rev.\ Lett.\ \textbf{129}, 042501 (2022), \doi{10.1103/PhysRevLett.129.042501}.
+\bibitem{Reed2021} B.~T.~Reed, F.~J.~Fattoyev, C.~J.~Horowitz and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{126}, 172503 (2021), \doi{10.1103/PhysRevLett.126.172503}.
+\bibitem{Reinhard2022} P.-G.~Reinhard, X.~Roca-Maza and W.~Nazarewicz, Phys.\ Rev.\ Lett.\ \textbf{129}, 232501 (2022), \doi{10.1103/PhysRevLett.129.232501}.
+\bibitem{Sarkar2023} T.~Sarkar, V.~B.~Thapa and M.~Sinha, Phys.\ Rev.\ C \textbf{108}, 035801 (2023), \doi{10.1103/PhysRevC.108.035801}.
+\bibitem{Brown2000} B.~A.~Brown, Phys.\ Rev.\ Lett.\ \textbf{85}, 5296 (2000), \doi{10.1103/PhysRevLett.85.5296}.
+\bibitem{TypelBrown2001} S.~Typel and B.~A.~Brown, Phys.\ Rev.\ C \textbf{64}, 027302 (2001), \doi{10.1103/PhysRevC.64.027302}.
+\bibitem{Furnstahl2002} R.~J.~Furnstahl, Nucl.\ Phys.\ A \textbf{706}, 85 (2002), \doi{10.1016/S0375-9474(02)00867-9}.
+\bibitem{RocaMaza2011} X.~Roca-Maza, M.~Centelles, X.~Vi\~nas and M.~Warda, Phys.\ Rev.\ Lett.\ \textbf{106}, 252501 (2011), \doi{10.1103/PhysRevLett.106.252501}.
+\bibitem{HorowitzPiekarewicz2001b} C.~J.~Horowitz and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{86}, 5647 (2001), \doi{10.1103/PhysRevLett.86.5647}.
+\bibitem{Horowitz2001PV} C.~J.~Horowitz, S.~J.~Pollock, P.~A.~Souder and R.~Michaels, Phys.\ Rev.\ C \textbf{63}, 025501 (2001), \doi{10.1103/PhysRevC.63.025501}.
+\bibitem{HorowitzSerot1981} C.~J.~Horowitz and B.~D.~Serot, Nucl.\ Phys.\ A \textbf{368}, 503 (1981), \doi{10.1016/0375-9474(81)90770-3}.
+\bibitem{Das2021} H.~C.~Das, A.~Kumar, B.~Kumar, S.~K.~Biswal and S.~K.~Patra, \emph{BigApple force and its implications to finite nuclei and astrophysical objects}, Int.\ J.\ Mod.\ Phys.\ E \textbf{30}, 2150088 (2021), \doi{10.1142/S0218301321500889}, \arxiv{2009.10690}. (The code comment gives a different author list; this one is from the arXiv entry.)
+\bibitem{GM1991} N.~K.~Glendenning and S.~A.~Moszkowski, Phys.\ Rev.\ Lett.\ \textbf{67}, 2414 (1991), \doi{10.1103/PhysRevLett.67.2414}.
+\bibitem{FSUGarnet} W.-C.~Chen and J.~Piekarewicz, Phys.\ Lett.\ B \textbf{748}, 284 (2015), \doi{10.1016/j.physletb.2015.07.020}.
+\bibitem{IOPBI} B.~Kumar, S.~K.~Patra and B.~K.~Agrawal, Phys.\ Rev.\ C \textbf{97}, 045806 (2018), \doi{10.1103/PhysRevC.97.045806}.
+\bibitem{BigApple} F.~J.~Fattoyev, C.~J.~Horowitz, J.~Piekarewicz and B.~Reed, Phys.\ Rev.\ C \textbf{102}, 065805 (2020), \doi{10.1103/PhysRevC.102.065805}.
+\bibitem{NL3} G.~A.~Lalazissis, J.~K\"onig and P.~Ring, Phys.\ Rev.\ C \textbf{55}, 540 (1997), \doi{10.1103/PhysRevC.55.540}.
+\bibitem{ToddRutel2005} B.~G.~Todd-Rutel and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{95}, 122501 (2005), \doi{10.1103/PhysRevLett.95.122501}.
+\bibitem{Angeli2013} I.~Angeli and K.~P.~Marinova, At.\ Data Nucl.\ Data Tables \textbf{99}, 69 (2013), \doi{10.1016/j.adt.2011.12.006} (experimental charge radii).
+\end{thebibliography}
+\end{document}
