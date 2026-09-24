@@ -17,7 +17,7 @@
 
 \title{Work report 2:\\ Neutron skins of $^{208}$Pb and $^{48}$Ca from the cooling-constrained models, and comparison with PREX-2 and CREX}
 \author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
-\date{Status as of 24 September 2026}
+\date{Status as of 24 September 2026 (updated)}
 
 \begin{document}
 \sloppy
@@ -130,6 +130,7 @@ IOPB-I & 33.30 & 63.58 & 0.2226 & 0.221 & 0.1975 & 0.202\\
 \item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls from 0.0024--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0003--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} near $\Lsym\approx80$ MeV, and in the cooling band 50--75 MeV it is 0.0017--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
 \item \textbf{Independent benchmarks (NL3 and FSUGold).} These sets are not part of the scan and have published finite-nucleus results. The benchmark path in the code first failed (``effective mass collapsed''). I traced it to two convention errors in the benchmark inputs: NL3 writes $M^*=M+g_\sigma\sigma$ with $\sigma<0$, so the cubic coupling changes sign ($b=-g_2/(Mg_\sigma^3)=+2.055\times10^{-3}$, $c=g_3/g_\sigma^4=-2.651\times10^{-3}$), and NL3 couples the $\rho$ as $g_\rho\boldsymbol\tau\cdot\boldsymbol\rho$ without the $\tfrac12$ of this Lagrangian, so $g_\rho$ must be doubled; for FSUGold I now take $b=\kappa/2M$, $c=\lambda/6$ from the published $\kappa=1.4203$ MeV, $\lambda=0.023762$, and the starting $\omega$ field includes the $\zeta$ term. After the fix:
 \begin{center}
+\begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{llccc}
 \toprule
 Set & Nucleus & $\DRnp$ (fm) mine / published & $r_{\rm ch}$ (fm) mine / published & $B/A$ (MeV) mine / published\\
@@ -139,6 +140,7 @@ NL3 & $^{48}$Ca & 0.226 / $\approx$0.23--0.245 & 3.464 / 3.473 & 8.58 / 8.64\\
 FSUGold & $^{208}$Pb & 0.207 / 0.207 & 5.514 / 5.521 & 7.82 / 7.89\\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{center}
 NL3 $^{48}$Ca: later comparisons quote an NL3 skin of about 0.23--0.245 fm (e.g.\ in the RMF studies around CREX), which agrees with my 0.226 fm; the value 0.195 fm written in an older comment of the code is not supported and has been corrected there.
 \end{itemize}
@@ -230,7 +232,47 @@ The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the g
 \end{enumerate}
 
 \subsection{Recomputation of the skin grid with the corrected convergence test}\label{sec:rerun}
-Status (24 September): running. All 148 grid points and the six validation points are being recomputed with \texttt{rerun\_skin\_grid\_fixed.py} (same couplings and meson masses, 451 mesh points, new convergence test). With the new test a $^{208}$Pb point needs about 150 sweeps instead of 10--30, so the full run takes several hours. The first finished point, BigApple at $\Esym=26.5$, $\Lsym=58.75$, moves from 0.1747 to 0.1683 fm ($-0.006$ fm). Changes of this size are small compared with the PREX-2 and CREX errors (0.071 and 0.035 fm) but comparable with the fit residuals (0.003--0.007 fm), so the surface fits and the intervals of Table~\ref{tab:constraints} must be redone with the new grid before submission. \fillin{new validation table, fit residuals and intervals from \texttt{skin\_grid\_fixed\_*.csv}}
+\textbf{Status (24 September, afternoon): running.} All 148 grid points and the six validation points are being recomputed with \texttt{rerun\_skin\_grid\_fixed.py} (same couplings and meson masses, 451 mesh points, new convergence test, 4 processes). With the new test a $^{208}$Pb point needs about 150--190 sweeps instead of 10--30, so the full run takes about 10 hours. Partial results are committed as \texttt{skin\_grid\_fixed\_*.csv}. The first nine $^{208}$Pb points:
+
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+BigApple & \multicolumn{2}{c}{$\DRnp$ (fm)} & & \multicolumn{2}{c}{$r_{\rm ch}$ (fm)} & \\
+$(\Esym,\Lsym)$ & old & new & change & old & new & $B/A$ old $\to$ new (MeV)\\
+\midrule
+(26.5, 58.75) & 0.1747 & 0.1683 & $-0.0063$ & 5.472 & 5.516 & 8.05 $\to$ 7.91\\
+(26.5, 82.50) & 0.1999 & 0.1943 & $-0.0057$ & 5.469 & 5.505 & 8.11 $\to$ 8.00\\
+(26.5, 106.25) & 0.1956 & 0.2010 & $+0.0054$ & 5.540 & 5.509 & 7.94 $\to$ 8.03\\
+(26.5, 130.00) & 0.1955 & 0.2000 & $+0.0045$ & 5.550 & 5.527 & 7.95 $\to$ 8.02\\
+(31.0, 35.00) & 0.1267 & 0.1226 & $-0.0041$ & 5.487 & 5.516 & 7.75 $\to$ 7.66\\
+(31.0, 58.75) & 0.2029 & 0.1970 & $-0.0059$ & 5.462 & 5.507 & 7.90 $\to$ 7.75\\
+(31.0, 82.50) & 0.2294 & 0.2241 & $-0.0053$ & 5.459 & 5.494 & 7.96 $\to$ 7.85\\
+(31.0, 106.25) & 0.2299 & 0.2351 & $+0.0052$ & 5.528 & 5.497 & 7.80 $\to$ 7.90\\
+(35.5, 35.00) & 0.1646 & 0.1705 & $+0.0059$ & 5.560 & 5.509 & 7.33 $\to$ 7.49\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+What this shows:
+\begin{itemize}
+\item In the old grid the charge radii fell into two groups, near 5.46 and near 5.54 fm; these were calculations that stopped at different stages of the iteration. The new values all lie at 5.49--5.53 fm, close to the published BigApple value (5.495 fm), as a converged calculation should.
+\item The skins move by 0.004--0.006 fm, in both directions. At fixed $\Esym$ the new skins grow smoothly with $\Lsym$ and then level off. The old ones had small dips (for example 0.1999 $\to$ 0.1956 fm from $\Lsym=82.5$ to 106.25 at $\Esym=26.5$), which are gone.
+\item These shifts are small compared with the PREX-2 and CREX errors (0.071 and 0.035 fm). So the main conclusions (nearly equal Pb and Ca skins, and cooling does not discriminate between PREX-2 and CREX) are very unlikely to change. But they are as large as the old fit residuals, so the surface fits, validation table, intervals and tension costs must all be regenerated from the new grid.
+\end{itemize}
+\fillin{final comparison, refitted surfaces and new intervals once the run is complete}
+
+%=====================================================================
+\section{Changes made to the paper~2 draft}
+%=====================================================================
+In \texttt{papers/paper2\_skins.tex}:
+\begin{enumerate}
+\item \textbf{Numerical treatment:} a paragraph describing the corrected convergence test (skin \emph{and} proton radius stable to $2\times10^{-4}$ fm over three sweeps, after at least twenty sweeps) and why the skin alone is not enough.
+\item \textbf{Validation:} the NL3 and FSUGold benchmarks ($^{208}$Pb skins 0.277 and 0.207 fm against the published 0.280 and 0.207 fm).
+\item \textbf{A note at the top of the file} that all grid-dependent numbers (validation table, residuals, intervals, tension costs, joint optimum) must be regenerated from \texttt{skin\_grid\_fixed\_*.csv}. They have \emph{not} been changed yet, because the rerun is still going.
+\item The bibliography entry \texttt{NL3} is in \texttt{papers/refs\_additions.bib} (add it to \texttt{refs.bib} if it is not there).
+\end{enumerate}
+To finish paper~2 after the rerun I also need \texttt{Data/cooling\_chi2\_final.csv}, because the cooling + skin intervals combine both.
 
 %=====================================================================
 \begin{thebibliography}{99}

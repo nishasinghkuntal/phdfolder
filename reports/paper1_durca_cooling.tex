@@ -17,7 +17,7 @@
 
 \title{Work report 1:\\ Constraining $\Esym$ and $\Lsym$ from neutron star cooling}
 \author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
-\date{Status as of 24 September 2026}
+\date{Status as of 24 September 2026 (updated)}
 
 \begin{document}
 \sloppy
@@ -457,6 +457,8 @@ The small GM differences come from the 4-digit rounding in their Table~II. For B
 \item All 3456 final cooling runs finished normally; 1\% of the older runs without heating ended abnormally and are not used.
 \item The alternative $^3P_2$ gap mode was first run for only 191 EoS; I re-ran it for all 864 so that no EoS gets an extra chance in the minimum over modes. Output folders were checked so that a new folder does not hide an older one with a similar name.
 \item Magnetised envelope bug in NSCool found and fixed, with a bit-for-bit control test (Report~3).
+\item \textbf{Isoscalar calibration}: exact refit of the $\zeta\neq0$ sets to $(n_0,E/A,K,M^*/M)$ changes $M_{\max}$ by $\le0.001\,\Msun$; with the published $\zeta$ the code reproduces the published $M_{\max}$ of IOPB-I (2.149 $\Msun$), FSUGarnet and BigApple within 0.2\%.
+\item \textbf{Onset masses}: read from the pipeline $M$--$R$ curves and cross-checked with an independent Python TOV (agreement within 0.015 $\Msun$ over 624 EoS).
 \item \texttt{Verification/verify\_papers.py} recomputes every number of the paper 1 draft from the data files (grid counts, best fit, intervals, radius, correlation) and rebuilds the paper; the last log shows all checks passing (e.g.\ best $\chi^2/N=1.3967$, $\chi^2/{\rm dof}=1.5963$, GM2 at 32.5/80, $R_{1.4}=13.20\pm0.39$ km). \texttt{Verification/check\_dois.py} checks the bibliography against Crossref.
 \end{enumerate}
 
@@ -512,11 +514,32 @@ $R_{1.4}$ (km) & 12.96--13.63 & $12.10^{+0.28}_{-0.39}$\\
 \item \textbf{Not the same work.} They use no cooling data. So our paper is still new; but we can no longer write that $\Lsym\approx50$--75 MeV is simply ``consistent with nuclear physics'' without discussing this paper.
 \end{enumerate}
 
-\paragraph{What I suggest to add to paper 1.}
+\paragraph{What has been added to the paper~1 draft.} The first two points below are now in \texttt{papers/paper1\_cooling.tex} (Sec.~\ref{sec:draft}); the third is still open.
 \begin{itemize}
-\item Cite the paper, show the $M_{\rm DU}$ table above, and state that the DUrca picture agrees.
-\item Discuss the $\Lsym$ tension honestly, with the reasons (a)--(d).
-\item As a test, extend the grid to lower $\Lsym$ where the models allow it (GM1, GM2 below 30 MeV), or add one parametrisation that reaches $\Lsym\approx20$--30 MeV, and see if the cooling $\chi^2$ really rises there.
+\item Citation of the paper, the $M_{\rm DU}$ results and the statement that the DUrca picture agrees. \emph{Done.}
+\item An honest discussion of the $\Lsym$ tension, with the reasons (a)--(d). \emph{Done.}
+\item A test that extends the grid to lower $\Lsym$ where the models allow it (GM1, GM2 below 30 MeV), or adds one parametrisation that reaches $\Lsym\approx20$--30 MeV, to see whether the cooling $\chi^2$ really rises there. \fillin{open}
+\end{itemize}
+
+%=====================================================================
+\section{Changes made to the paper~1 draft}\label{sec:draft}
+%=====================================================================
+The draft \texttt{papers/paper1\_cooling.tex} (MNRAS version) has been corrected as follows. The original is kept in the repository history, so every change can be seen line by line.
+\begin{enumerate}
+\item \textbf{RX J0822$-$4300 (Sec.~``A correction to an adopted surface temperature'').} The two-component fit is now attributed to the Potekhin et al.\ 2020 compilation instead of Zavlin et al.\ 1999, and a sentence gives the spread of acceptable whole-surface fits (0.79--1.34 MK). Two \texttt{\% CHECK} comments mark where the original references must still be added.
+\item \textbf{New subsection ``Direct Urca threshold masses''} with the numbers of Sec.~\ref{sec:mdu} (median 1.77 $\Msun$, 9.9\% at or below 1.4 $\Msun$, best fit 1.47 $\Msun$).
+\item \textbf{New paragraph on Montefusco et al.\ \cite{Montefusco2026}} in the discussion of the $\Lsym$ interval: agreement on $M_{\rm DU}$ and $\Esym$, tension in $\Lsym$, and why part of it comes from the model family.
+\item \textbf{Two new systematics paragraphs:} the isoscalar calibration of the $\zeta\ne0$ sets (Sec.~\ref{sec:tov}, Sec.~\ref{sec:checks}) and the RX~J0822 temperature spread.
+\item \textbf{New bibliography entry} \texttt{Montefusco2026} in \texttt{papers/refs\_additions.bib}.
+\end{enumerate}
+\noindent\textbf{Important:} the header of the MNRAS file says it is generated from the REVTeX source by \texttt{to\_mnras.py}. The same edits must be made in the REVTeX source, or they will be lost the next time the converter runs.
+
+\noindent\textbf{Still to do before submission} (all marked \texttt{\% CHECK} in the draft):
+\begin{itemize}
+\item the original references for the RX~J0822 two-component fit and for the 1.18 MK value (Table~1 of Potekhin et al.\ 2020);
+\item the posterior-weighted $P(M_{\rm DU}\le1.4\,\Msun)$ from \texttt{Data/cooling\_chi2\_final.csv};
+\item confirmation of the published $\zeta$ values of FSUGarnet, IOPB-I and BigApple;
+\item a rerun with $\sigma=0.12$ dex for RX~J0822, to quote its effect.
 \end{itemize}
 
 %=====================================================================
