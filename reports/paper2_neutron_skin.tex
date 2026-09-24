@@ -128,7 +128,7 @@ IOPB-I & 33.30 & 63.58 & 0.2226 & 0.221 & 0.1975 & 0.202\\
 \item One model over $A=16$--208 ($^{16}$O, $^{40}$Ca, $^{48}$Ca, $^{208}$Pb) converges everywhere, with binding energies within 0.09 MeV per nucleon of experiment.
 \item The $N=Z$ nuclei come out with \emph{negative} skins, $-0.030$ fm ($^{16}$O) and $-0.053$ fm ($^{40}$Ca), which is correct because Coulomb pushes protons out.
 \item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls from 0.0024--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0003--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} near $\Lsym\approx80$ MeV, and in the cooling band 50--75 MeV it is 0.0017--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
-\item Benchmarks with NL3 \cite{NL3} and FSUGold \cite{ToddRutel2005} are also in the code (published Pb skins 0.280 and 0.207 fm). \fillin{add my numbers for these two}
+\item Benchmarks with NL3 \cite{NL3} and FSUGold \cite{ToddRutel2005} (published Pb skins 0.280 and 0.207 fm) are also coded in \texttt{finite\_nucleus\_rmf.py}, but in the current version they stop with ``effective mass collapsed''. Most likely the benchmark input path was not updated when the code moved to model-specific meson masses. This does not touch any result above (the validation against Das et al.\ uses the production path), but I will fix it so that the solver is also tested on a set that is not part of the scan. \fillin{fix benchmark path}
 \end{itemize}
 
 %=====================================================================
@@ -213,6 +213,7 @@ The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the g
 \item The meson mass values were checked against Table~1 of Ref.~\cite{Das2021}; an older comment in the code had the wrong reference and author list for FSUGarnet and IOPB-I, which I corrected.
 \item Only converged points are used (flag in the CSV files).
 \item Fit residual measured and added to the errors.
+\item All numbers of the paper 2 draft (validation table, slopes, fit residuals, tension costs, joint optimum, intervals) are recomputed from the data files by \texttt{Verification/verify\_papers.py}; its last log shows every check passing, for example joint optimum FSUGarnet at $\Esym=34.0$, $\Lsym=50$ with Pb 0.1775 fm, Ca 0.1742 fm and joint $\chi^2=4.425$.
 \item \textbf{Things I noticed while writing this report and still have to look at:} (i) a few $^{48}$Ca points are not smooth in $\Lsym$ (for example BigApple at $\Esym=35.5$, $\Lsym=106.25$ has $B/A=-9.33$ MeV and a smaller charge radius than its neighbours), which could be a different occupation converging; they pass the convergence flag, so I should check the level scheme there. (ii) The older script \texttt{skin\_constraint.py} refers to a variable that no longer exists in \texttt{finite\_nucleus\_rmf.py}; the working script is \texttt{skin\_constraints.py}. (iii) Running \texttt{skin\_constraints.py} today, with its simpler one-sigma band method, gives joint $\chi^2_{\min}=4.46$--4.70 per model and CREX-alone bands that extend below the computed $\Lsym$ range; these are extrapolations, and the numbers quoted above come from the likelihood analysis on the computed grid.
 \end{enumerate}
 
