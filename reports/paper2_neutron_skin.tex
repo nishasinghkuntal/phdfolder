@@ -101,7 +101,7 @@ The skins are then represented per model by the surface
 \begin{equation}
 \DRnp = a + b\Lsym + c\Lsym^2 + d\Esym + e\,\Esym\Lsym .
 \end{equation}
-The $\Lsym^2$ term is needed: the skin rises fast with $\Lsym$ and then saturates. A linear fit leaves rms residuals of 0.015--0.018 fm for Pb (half the PREX-2 error), while this surface gives 0.0034--0.0073 fm. I add this residual in quadrature to the experimental errors.
+The $\Lsym^2$ term is needed: the skin rises fast with $\Lsym$ and then saturates. A linear fit leaves rms residuals of 0.014--0.015 fm for Pb (a fifth of the PREX-2 error), while this surface gives 0.0037--0.0072 fm (recomputed grid; before: 0.015--0.018 and 0.0034--0.0073 fm). I add this residual in quadrature to the experimental errors.
 
 %=====================================================================
 \section{Validation of the finite nucleus code}
@@ -115,19 +115,19 @@ The $\Lsym^2$ term is needed: the skin rises fast with $\Lsym$ and then saturate
  & & & \multicolumn{2}{c}{$\DRnp(^{208}{\rm Pb})$ fm} & \multicolumn{2}{c}{$\DRnp(^{48}{\rm Ca})$ fm}\\
 Model & $\Esym$ & $\Lsym$ & mine & published & mine & published\\
 \midrule
-BigApple & 31.32 & 39.80 & 0.1535 & 0.151 & 0.1707 & 0.170\\
-FSUGarnet & 30.95 & 51.04 & 0.1628 & 0.162 & 0.1655 & 0.169\\
-IOPB-I & 33.30 & 63.58 & 0.2226 & 0.221 & 0.1975 & 0.202\\
+BigApple & 31.32 & 39.80 & 0.1494 & 0.151 & 0.1683 & 0.170\\
+FSUGarnet & 30.95 & 51.04 & 0.1636 & 0.162 & 0.1676 & 0.169\\
+IOPB-I & 33.30 & 63.58 & 0.2212 & 0.221 & 0.2010 & 0.202\\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
 \begin{itemize}
-\item Skins agree to 0.7--4.5 milli-fermi, 15 to 100 times smaller than the PREX-2 error.
-\item Charge radii agree to 0.03 fm. Binding energies are 0.08 MeV per nucleon low in a systematic way, which fits with the pairing energy that the published calculation includes and mine does not. It does not affect the skin, which is a difference of radii.
-\item One model over $A=16$--208 ($^{16}$O, $^{40}$Ca, $^{48}$Ca, $^{208}$Pb) converges everywhere, with binding energies within 0.09 MeV per nucleon of experiment.
+\item Skins agree to 0.2--1.7 milli-fermi (recomputed with the corrected convergence test; before: 0.7--4.5), 40 to 300 times smaller than the PREX-2 error.
+\item Charge radii agree to 0.023 fm. Binding energies are 0.09--0.24 MeV per nucleon \emph{below} the published values (also 0.16 MeV for NL3 Pb-208). Before the convergence fix this was hidden: calculations that stopped early were over-bound and by chance close to the published values. Pairing cannot explain it for doubly magic nuclei, so the energy expression (or the centre-of-mass correction) should be checked. \fillin{open issue} It does not affect the skins, which are differences of radii.
+\item One model over $A=16$--208 ($^{16}$O, $^{40}$Ca, $^{48}$Ca, $^{208}$Pb) converges everywhere, with binding energies within 0.17 MeV per nucleon of experiment (O-16 $-0.05$, Ca-40 $-0.14$, Ca-48 $-0.17$, Pb-208 $-0.14$ MeV).
 \item The $N=Z$ nuclei come out with \emph{negative} skins, $-0.030$ fm ($^{16}$O) and $-0.053$ fm ($^{40}$Ca), which is correct because Coulomb pushes protons out.
-\item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls from 0.0024--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0003--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} near $\Lsym\approx80$ MeV, and in the cooling band 50--75 MeV it is 0.0017--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
+\item The local slope $d\DRnp/d\Lsym$ for $^{208}$Pb falls (at $\Esym=32.5$ MeV) from 0.0021--0.0031 fm/MeV at $\Lsym=40$ MeV to 0.0005--0.0007 fm/MeV at 100 MeV. It passes the model-averaged slope 0.00147 fm/MeV of Roca-Maza et al.\ \cite{RocaMaza2011} between $\Lsym\approx64$ and 81 MeV depending on the model, and at $\Lsym=60$ MeV it is 0.0016--0.0023 fm/MeV. I call this consistency only, because a slope inside one model and a slope across many models are not the same thing. I never fitted to that correlation.
 \item \textbf{Independent benchmarks (NL3 and FSUGold).} These sets are not part of the scan and have published finite-nucleus results. The benchmark path in the code first failed (``effective mass collapsed''). I traced it to two convention errors in the benchmark inputs: NL3 writes $M^*=M+g_\sigma\sigma$ with $\sigma<0$, so the cubic coupling changes sign ($b=-g_2/(Mg_\sigma^3)=+2.055\times10^{-3}$, $c=g_3/g_\sigma^4=-2.651\times10^{-3}$), and NL3 couples the $\rho$ as $g_\rho\boldsymbol\tau\cdot\boldsymbol\rho$ without the $\tfrac12$ of this Lagrangian, so $g_\rho$ must be doubled; for FSUGold I now take $b=\kappa/2M$, $c=\lambda/6$ from the published $\kappa=1.4203$ MeV, $\lambda=0.023762$, and the starting $\omega$ field includes the $\zeta$ term. After the fix:
 \begin{center}
 \begin{adjustbox}{max width=\linewidth}
@@ -157,7 +157,7 @@ For each experiment separately,
 over the three models and the reduced grid ($\Esym\ge26$ MeV). I turn these into likelihoods and get 68\% intervals exactly like in Report~1. When I combine with cooling I multiply by the cooling likelihood evaluated \emph{on the same reduced grid}, so that everything is consistent. Only my predicted skins and the measured skins enter; no published $\Lsym$ from the experiments is used anywhere.
 
 \subsection{The tension appears in my own calculation}
-At the point that best fits both experiments together the predictions are $\DRnp(^{208}{\rm Pb})\simeq0.177$ fm and $\DRnp(^{48}{\rm Ca})\simeq0.174$ fm, almost equal, while the experiments want 0.283 and 0.121 fm (Table~\ref{tab:pred}). The joint $\chi^2$ there is 4.42. With two data points and two parameters there are no degrees of freedom, so I use this number only to show how far apart the two experiments pull inside this model family, not as a goodness of fit. This is the PREX--CREX puzzle \cite{Reinhard2022} reproduced by my own code: both skins respond to the same isovector couplings in the same direction \cite{Furnstahl2002}.
+At the point that best fits both experiments together the predictions are $\DRnp(^{208}{\rm Pb})\simeq0.174$ fm and $\DRnp(^{48}{\rm Ca})\simeq0.173$ fm (FSUGarnet, $\Esym=31.0$, $\Lsym=55$ MeV), almost equal, while the experiments want 0.283 and 0.121 fm (Table~\ref{tab:pred}). The joint $\chi^2$ there is 4.46 (4.42 before the recomputation). With two data points and two parameters there are no degrees of freedom, so I use this number only to show how far apart the two experiments pull inside this model family, not as a goodness of fit. This is the PREX--CREX puzzle \cite{Reinhard2022} reproduced by my own code: both skins respond to the same isovector couplings in the same direction \cite{Furnstahl2002}.
 
 \begin{table}[h]
 \centering
@@ -167,8 +167,8 @@ At the point that best fits both experiments together the predictions are $\DRnp
 \toprule
 Nucleus & predicted (fm) & measured (fm) & difference\\
 \midrule
-$^{208}$Pb & 0.177 & $0.283\pm0.071$ \cite{PREX2} & $-1.5\sigma$\\
-$^{48}$Ca & 0.174 & $0.121\pm0.035$ \cite{CREX} & $+1.5\sigma$\\
+$^{208}$Pb & 0.174 & $0.283\pm0.071$ \cite{PREX2} & $-1.5\sigma$\\
+$^{48}$Ca & 0.173 & $0.121\pm0.035$ \cite{CREX} & $+1.5\sigma$\\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -208,7 +208,7 @@ Two natural measures give opposite answers, so I report both:
 \item \textbf{Joint cost}: the extra $\chi^2$ of fitting cooling and one experiment together, beyond fitting each alone, is 0.78 ($0.9\sigma$) for PREX-2 and 2.07 ($1.4\sigma$) for CREX. This looks like PREX-2 is closer, but the difference, 1.29 in $\chi^2$ (about $1.1\sigma$), does not discriminate.
 \item \textbf{Marginal posteriors}: the cooling $\Esym$ interval [26.5, 34.0] does not touch PREX-2's [35.5, 43.0] and covers almost all of CREX's [26.5, 32.5]. Adding CREX to cooling changes nothing, adding PREX-2 shifts it up to [28.0, 35.5]. The peaks are at $\Esym\simeq32.5$ (cooling), 26.5 (CREX) and 41.5 MeV (PREX-2).
 \end{enumerate}
-The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the grid (its own minimum $\chi^2=0.00$) but only at $\Esym\simeq41.5$ MeV, where cooling is poor; CREX can never be fitted exactly (minimum 1.03), even though its preferred region is the same as cooling's. \textbf{So my conclusion is that cooling does not discriminate between the two experiments}, and which one looks closer depends on the statistic. An earlier version of this work gave only the joint cost; I now think quoting only one of them would be wrong.
+The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the grid (its own minimum $\chi^2=0.00$) but only at $\Esym\simeq41.5$ MeV, where cooling is poor; CREX can never be fitted exactly (minimum 1.06), even though its preferred region is the same as cooling's. \textbf{So my conclusion is that cooling does not discriminate between the two experiments}, and which one looks closer depends on the statistic. An earlier version of this work gave only the joint cost; I now think quoting only one of them would be wrong.
 
 \subsection{Significance}
 \begin{itemize}
@@ -232,35 +232,44 @@ The reason they disagree: PREX-2 can be fitted \emph{exactly} somewhere on the g
 \end{enumerate}
 
 \subsection{Recomputation of the skin grid with the corrected convergence test}\label{sec:rerun}
-\textbf{Status (24 September, afternoon): running.} All 148 grid points and the six validation points are being recomputed with \texttt{rerun\_skin\_grid\_fixed.py} (same couplings and meson masses, 451 mesh points, new convergence test, 4 processes). With the new test a $^{208}$Pb point needs about 150--190 sweeps instead of 10--30, so the full run takes about 10 hours. Partial results are committed as \texttt{skin\_grid\_fixed\_*.csv}. The first nine $^{208}$Pb points:
+\textbf{Done (24 September).} All 148 grid points and the six validation points were recomputed with \texttt{rerun\_skin\_grid\_fixed.py} (same couplings and meson masses, 451 mesh points, new convergence test). Every point converged. Results: \texttt{skin\_grid\_fixed\_Pb208.csv}, \texttt{skin\_grid\_fixed\_Ca48.csv}, \texttt{skin\_validation\_fixed.csv}.
 
 \begin{center}
-\small
-\begin{tabular}{lcccccc}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
 \toprule
-BigApple & \multicolumn{2}{c}{$\DRnp$ (fm)} & & \multicolumn{2}{c}{$r_{\rm ch}$ (fm)} & \\
-$(\Esym,\Lsym)$ & old & new & change & old & new & $B/A$ old $\to$ new (MeV)\\
+ & $^{208}$Pb & $^{48}$Ca\\
 \midrule
-(26.5, 58.75) & 0.1747 & 0.1683 & $-0.0063$ & 5.472 & 5.516 & 8.05 $\to$ 7.91\\
-(26.5, 82.50) & 0.1999 & 0.1943 & $-0.0057$ & 5.469 & 5.505 & 8.11 $\to$ 8.00\\
-(26.5, 106.25) & 0.1956 & 0.2010 & $+0.0054$ & 5.540 & 5.509 & 7.94 $\to$ 8.03\\
-(26.5, 130.00) & 0.1955 & 0.2000 & $+0.0045$ & 5.550 & 5.527 & 7.95 $\to$ 8.02\\
-(31.0, 35.00) & 0.1267 & 0.1226 & $-0.0041$ & 5.487 & 5.516 & 7.75 $\to$ 7.66\\
-(31.0, 58.75) & 0.2029 & 0.1970 & $-0.0059$ & 5.462 & 5.507 & 7.90 $\to$ 7.75\\
-(31.0, 82.50) & 0.2294 & 0.2241 & $-0.0053$ & 5.459 & 5.494 & 7.96 $\to$ 7.85\\
-(31.0, 106.25) & 0.2299 & 0.2351 & $+0.0052$ & 5.528 & 5.497 & 7.80 $\to$ 7.90\\
-(35.5, 35.00) & 0.1646 & 0.1705 & $+0.0059$ & 5.560 & 5.509 & 7.33 $\to$ 7.49\\
+skin change, mean / rms / max (fm) & $-0.0002$ / 0.0039 / 0.0073 & $+0.0010$ / 0.0026 / 0.0061\\
+points that moved by more than 0.003 fm & 37 of 74 & 19 of 74\\
+spread of $r_{\rm ch}$ within BigApple, old $\to$ new (fm) & 0.043 $\to$ 0.013 & 0.048 $\to$ 0.006\\
 \bottomrule
 \end{tabular}
+\end{adjustbox}
 \end{center}
+The old charge radii fell into two groups (calculations stopped at different stages); the new ones form one smooth set, as a converged calculation should. The skins shift in both directions with almost no net change.
 
-What this shows:
-\begin{itemize}
-\item In the old grid the charge radii fell into two groups, near 5.46 and near 5.54 fm; these were calculations that stopped at different stages of the iteration. The new values all lie at 5.49--5.53 fm, close to the published BigApple value (5.495 fm), as a converged calculation should.
-\item The skins move by 0.004--0.006 fm, in both directions. At fixed $\Esym$ the new skins grow smoothly with $\Lsym$ and then level off. The old ones had small dips (for example 0.1999 $\to$ 0.1956 fm from $\Lsym=82.5$ to 106.25 at $\Esym=26.5$), which are gone.
-\item These shifts are small compared with the PREX-2 and CREX errors (0.071 and 0.035 fm). So the main conclusions (nearly equal Pb and Ca skins, and cooling does not discriminate between PREX-2 and CREX) are very unlikely to change. But they are as large as the old fit residuals, so the surface fits, validation table, intervals and tension costs must all be regenerated from the new grid.
-\end{itemize}
-\fillin{final comparison, refitted surfaces and new intervals once the run is complete}
+\paragraph{Effect on the paper~2 results} (\texttt{joint\_likelihood.py} run on the old and on the new grid; skin-only quantities):
+\begin{center}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
+\toprule
+Quantity & old grid (= paper draft) & new grid\\
+\midrule
+PREX-2 alone, 68\% & $\Lsym$ [50, 95], $\Esym$ [35.5, 43.0] & unchanged\\
+CREX alone, 68\% & $\Lsym$ [50, 70], $\Esym$ [26.5, 32.5] & unchanged\\
+joint optimum & FSUGarnet 34.0/50: Pb 0.177, Ca 0.174 fm & FSUGarnet 31.0/55: Pb 0.174, Ca 0.173 fm\\
+joint $\chi^2$ at optimum & 4.42 & 4.46\\
+minimum $\chi^2$ of CREX alone & 1.03 & 1.06\\
+quadratic fit residuals & 0.0034--0.0073 fm & 0.0037--0.0072 fm\\
+validation (skins vs Das et al.) & 0.7--4.5 mfm & 0.2--1.7 mfm\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\textbf{All conclusions of paper~2 stand}: the separate PREX-2 and CREX intervals are unchanged, the models still give nearly equal Pb and Ca skins, and the validation is better than before. The numbers that combine cooling with a skin (the cooling rows of Table~\ref{tab:constraints} and the tension costs 0.78 and 2.07) must be recomputed with the final cooling $\chi^2$ file; the run with a placeholder cooling file changes them by only 0.1--0.2 in $\chi^2$. \fillin{rerun with cooling\_chi2\_final.csv}
+
+\noindent\textbf{New open issue:} binding energies are now 0.09--0.24 MeV per nucleon below the published values (see the validation list above). It does not touch the skins, but the paper must not claim agreement in $B/A$ to 0.08 MeV any more; the draft has been changed accordingly.
 
 %=====================================================================
 \section{Changes made to the paper~2 draft}
@@ -269,7 +278,8 @@ In \texttt{papers/paper2\_skins.tex}:
 \begin{enumerate}
 \item \textbf{Numerical treatment:} a paragraph describing the corrected convergence test (skin \emph{and} proton radius stable to $2\times10^{-4}$ fm over three sweeps, after at least twenty sweeps) and why the skin alone is not enough.
 \item \textbf{Validation:} the NL3 and FSUGold benchmarks ($^{208}$Pb skins 0.277 and 0.207 fm against the published 0.280 and 0.207 fm).
-\item \textbf{A note at the top of the file} that all grid-dependent numbers (validation table, residuals, intervals, tension costs, joint optimum) must be regenerated from \texttt{skin\_grid\_fixed\_*.csv}. They have \emph{not} been changed yet, because the rerun is still going.
+\item \textbf{All skin-only numbers updated} from the recomputed grid: validation table and text (0.2--1.7 mfm, charge radii 0.023 fm, binding energies now stated as 0.09--0.24 MeV/A low), $A=16$--208 binding (within 0.17 MeV/A), local slopes, linear and quadratic residuals, joint optimum (0.174/0.173 fm, $\chi^2=4.46$), minimum CREX $\chi^2$ (1.06), Table of predicted skins.
+\item \textbf{Still to update} (marked \texttt{\% CHECK}): the cooling rows of the constraints table and the tension costs, which need \texttt{Data/cooling\_chi2\_final.csv}.
 \item The bibliography entry \texttt{NL3} is in \texttt{papers/refs\_additions.bib} (add it to \texttt{refs.bib} if it is not there).
 \end{enumerate}
 To finish paper~2 after the rerun I also need \texttt{Data/cooling\_chi2\_final.csv}, because the cooling + skin intervals combine both.
