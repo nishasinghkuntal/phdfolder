@@ -1,0 +1,622 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\fillin}[1]{\textcolor{red}{[#1]}}
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+\newcommand{\ads}[1]{\href{https://ui.adsabs.harvard.edu/abs/#1}{ADS link}}
+
+\title{Work report 1:\\ Constraining $\Esym$ and $\Lsym$ from neutron star cooling}
+\author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
+\date{Status as of 24 September 2026 (updated)}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\noindent\textit{How to read this report.} This report explains step by step what I have done for the first paper (draft: \emph{Constraining the nuclear symmetry energy from neutron star thermal evolution: the role of late-time heating, envelope composition, and extrapolation bias}, with Dr.~Rana Nandi). Every paper and data source I used is listed at the end with its DOI, or with an arXiv or ADS link when there is no DOI, so that each number can be checked. The few places where I still have to add something are written in \fillin{red}.
+
+\begin{abstract}
+In this work I study how the density dependence of the nuclear symmetry energy controls the cooling of neutron stars through the nucleonic direct Urca (DUrca) process. The symmetry energy at saturation, $\Esym$, and its slope, $\Lsym$, fix the proton fraction inside the star, and the proton fraction decides if DUrca is allowed or not. I built a large set of relativistic mean field (RMF) equations of state (EoS) from one common Lagrangian, using five published parametrisations (GM1, GM2, FSUGarnet, IOPB-I and BigApple). For each of them I keep the isoscalar part as published and I re-calculate only the two isovector couplings, $g_\rho$ and $\Lambda_{\omega\rho}$, so that the model has exactly the $\Esym$ and $\Lsym$ that I want. I scan $\Esym$ from 25 to 43 MeV and $\Lsym$ from 30 to 130 MeV on an equispaced grid. Each EoS is joined to a standard crust, checked, written in the NSCool format, and used to build stars with my TOV code. For stars of 1.0, 1.4, 1.8 and 2.0 $\Msun$ I computed cooling curves with NSCool for several neutrino, superfluidity and envelope choices, and compared them with 16 isolated neutron stars of known age and surface temperature. 864 EoS pass all the physical cuts. The $\chi^2$ analysis with a profile over the star masses gives $\Lsym = 50$--$75$ MeV at 68\% ($35$--$80$ MeV at 95\%) and $\Esym = 28$--$36$ MeV at 68\% ($25$--$40$ MeV at 95\%), with $\chi^2/{\rm dof}=1.60$. On the way I found three effects that changed the result a lot: freezing the temperature at the end of a cooling curve, the missing late-time heating, and the wrong envelope for the two stars with carbon atmospheres. I also found that the temperature used before for RX~J0822$-$4300 belongs to a hot spot and not to the whole surface.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Introduction}
+%=====================================================================
+
+\subsection{Nuclear parameters and the symmetry energy}
+The energy per nucleon of nuclear matter at baryon density $n$ and isospin asymmetry $\delta=(n_n-n_p)/n$ can be written as
+\begin{equation}
+E(n,\delta) = E_0(n) + S(n)\,\delta^2 + \mathcal{O}(\delta^4),
+\end{equation}
+where $E_0$ is the energy of symmetric matter and $S(n)$ is the symmetry energy. Around the saturation density $n_0\simeq 0.15$--$0.16$ fm$^{-3}$ both are expanded in $x=(n-n_0)/3n_0$:
+\begin{align}
+E_0(n) &= E_{\rm sat} + \tfrac12 K x^2 + \dots,\\
+S(n) &= \Esym + \Lsym\, x + \tfrac12 K_{\rm sym}x^2 + \dots,
+\end{align}
+with $\Esym=S(n_0)$ and $\Lsym = 3n_0\,(dS/dn)_{n_0}$. The isoscalar parameters $n_0$, $E_{\rm sat}\approx-16$ MeV, $K$ and the effective mass $M^*/M$ are known quite well from nuclei. The isovector parameters $\Esym$ and especially $\Lsym$ are much less certain \cite{LattimerLim2013,Drischler2020,Essick2021}. They are the two numbers I want to constrain.
+
+In a neutron star, matter is in $\beta$ equilibrium and charge neutral, and the proton fraction $Y_p$ is set almost fully by $S(n)$. A symmetry energy that grows fast with density (large $\Lsym$) gives more protons at high density.
+
+\subsection{The direct Urca process}
+The fastest nucleonic neutrino process is the direct Urca process
+\begin{equation}
+n\to p + e^- + \bar\nu_e,\qquad p + e^- \to n + \nu_e .
+\end{equation}
+It can only happen if momentum is conserved on the Fermi surfaces, i.e.\ $k_{Fn}\le k_{Fp}+k_{Fe}$ \cite{LPPH1991}. In $npe$ matter this gives the well known $Y_p\ge1/9$; when muons are present $k_{Fe}<k_{Fp}$ and the threshold is higher, so in my code I use the momentum condition directly. When DUrca is open its emissivity is several orders of magnitude larger than modified Urca \cite{FrimanMaxwell1979,Yakovlev2001}, and the star cools very fast \cite{YakovlevPethick2004,Page2004}. Because the threshold depends on how quickly $S(n)$ grows above $n_0$, cooling is much more sensitive to $\Lsym$ than to $\Esym$.
+
+\subsection{Starting point: the work of Sinha and collaborators}
+The main reference for this project is Sarkar, Thapa and Sinha, \emph{Fast neutron star cooling in light of the PREX-2 experiment}, Phys.\ Rev.\ C 108, 035801 (2023) \cite{Sarkar2023}, together with the earlier work of Thapa and Sinha on DUrca and PREX-2 \cite{ThapaSinha2022}. They took the PREX-2 inferred values \cite{PREX2,Reed2021}
+\begin{equation}
+\Esym = 38.1\pm 4.7~{\rm MeV},\qquad \Lsym = 106\pm 37~{\rm MeV},
+\end{equation}
+and used two covariant density functionals, GM1 (non-linear) and DDMEX (density dependent). Keeping all other couplings as published, they retuned only the $\rho$ meson coupling so that $\Esym(n_0)=38.1$ MeV (and $\Esym\approx28$ MeV at 0.1 fm$^{-3}$, to keep finite nuclei reasonable), and looked at $\Lsym=70$, 85 and 106 MeV. Their main points are:
+\begin{itemize}
+\item the proton fraction hardly changes with $\Esym$ inside the PREX-2 range, so they fix $\Esym=38.1$ MeV and vary only $\Lsym$ (their Fig.~1);
+\item with $\Lsym=85$ MeV DUrca opens above $M_{\rm DU}\approx0.978\,\Msun$ for GM1 and $1.125\,\Msun$ for DDMEX, at $n_{\rm DU}\approx0.289$ and 0.284 fm$^{-3}$ (their Fig.~3 and Table~I); at $\Lsym\approx106$ MeV already at 0.8--0.9 $\Msun$;
+\item they run NSCool with the same HZD--NV crust that I use, iron envelopes, and stars of 1.2, 1.43 and 2.0 $\Msun$, and find that with superfluid suppression 13 isolated stars are explained, with Cas~A needing a weaker neutron gap.
+\end{itemize}
+In short, they show that the PREX-2 values make fast cooling possible in canonical mass stars and that this is compatible with the data.
+
+My work goes one step further, and also uses GM1 as one of its models, so the two can be compared directly (Sec.~\ref{sec:mdu}). Instead of fixing $\Esym$ and $\Lsym$ at the PREX-2 values, I scan a wide equispaced grid in $(\Esym,\Lsym)$, compute cooling curves for every point, and use the observed stars to find which part of the grid is preferred. In this way the cooling data \emph{constrain} the symmetry energy instead of only testing one value.
+
+%=====================================================================
+\section{One Lagrangian for all models}\label{sec:lagrangian}
+%=====================================================================
+I use the non-linear Walecka type Lagrangian \cite{Walecka1974,BogutaBodmer1977,SerotWalecka1986} with $\sigma$, $\omega$, $\rho$ mesons, the quartic $\omega$ term $\zeta$ \cite{MullerSerot1996} and the $\omega$--$\rho$ mixing term $\Lambda_{\omega\rho}$ \cite{HorowitzPiekarewicz2001,ToddRutel2005}:
+\begin{align}
+\mathcal{L} &= \bar\psi\Big[\gamma^\mu\big(i\partial_\mu - g_\omega\omega_\mu - \tfrac12 g_\rho\boldsymbol{\tau}\cdot\boldsymbol{\rho}_\mu\big) - (M - g_\sigma\sigma)\Big]\psi \nonumber\\
+&\quad + \tfrac12\big[(\partial\sigma)^2 - m_\sigma^2\sigma^2\big] - \tfrac13 b M (g_\sigma\sigma)^3 - \tfrac14 c\,(g_\sigma\sigma)^4 \nonumber\\
+&\quad - \tfrac14\Omega_{\mu\nu}\Omega^{\mu\nu} + \tfrac12 m_\omega^2\omega_\mu\omega^\mu + \tfrac{\zeta}{24}\big(g_\omega^2\omega_\mu\omega^\mu\big)^2 \nonumber\\
+&\quad - \tfrac14\mathbf{R}_{\mu\nu}\cdot\mathbf{R}^{\mu\nu} + \tfrac12 m_\rho^2\boldsymbol{\rho}_\mu\cdot\boldsymbol{\rho}^\mu + \Lambda_{\omega\rho}\big(g_\omega^2\omega_\mu\omega^\mu\big)\big(g_\rho^2\boldsymbol{\rho}_\nu\cdot\boldsymbol{\rho}^\nu\big) \nonumber\\
+&\quad + \sum_{l=e,\mu}\bar\psi_l\big(i\gamma^\mu\partial_\mu - m_l\big)\psi_l .
+\end{align}
+With $\Phi=g_\sigma\sigma$, $W=g_\omega\omega_0$, $R=g_\rho\rho_{03}$ and $C_i^2=(g_i/m_i)^2$, the mean field equations of uniform matter are
+\begin{align}
+\frac{\Phi}{C_\sigma^2} + bM\Phi^2 + c\,\Phi^3 &= n_s,\\
+\frac{W}{C_\omega^2} + 2\Lambda_{\omega\rho}R^2W + \frac{\zeta}{6}W^3 &= n,\\
+\frac{R}{C_\rho^2} + 2\Lambda_{\omega\rho}W^2 R &= \tfrac12(n_p-n_n),
+\end{align}
+with $M^*=M-\Phi$ and chemical potentials $\mu_{p,n}=\sqrt{k_F^2+M^{*2}}+W\pm R/2$. For the energy density and pressure I followed Hornick et al.\ \cite{Hornick2018} (their Eqs.~2--7) and added the $\zeta$ terms.
+
+\paragraph{Why one Lagrangian is enough.} All five models are special cases of the same Lagrangian. GM1 and GM2 \cite{GM1991} have $\zeta=0$ and in the original fit $\Lambda_{\omega\rho}=0$; FSUGarnet \cite{FSUGarnet}, IOPB-I \cite{IOPBI} and BigApple \cite{BigApple} have $\zeta\neq0$ and $\Lambda_{\omega\rho}\neq0$. So one code handles every model and only the input numbers change. Also, in uniform matter the couplings appear only through the ratios $C_i^2$, so the individual meson masses are not needed for the EoS (they are needed for finite nuclei, see Report~2).
+
+The couplings fall into two groups:
+\begin{enumerate}
+\item \textbf{Isoscalar} ($C_\sigma^2$, $C_\omega^2$, $b$, $c$, $\zeta$): fixed by $n_0$, $E/A$, $K$, $M^*/M$. I keep them exactly as published.
+\item \textbf{Isovector} ($C_\rho^2$, $\Lambda_{\omega\rho}$): these two map one-to-one onto $(\Esym,\Lsym)$. I recompute them for every grid point.
+\end{enumerate}
+This way of keeping the isoscalar sector fixed and varying only the isovector part is the same idea Chen and Piekarewicz used when they built FSUGarnet \cite{FSUGarnet}. The isoscalar sector already gives a kinetic part of the symmetry energy,
+\begin{equation}
+J_0 = \frac{k_F^2}{6E_F^*},\qquad
+L_0 = J_0\left\{1+\frac{M^{*2}}{E_F^{*2}}\left[1-\frac{3n_0}{M^*}\frac{dM^*}{dn}\right]\right\},
+\end{equation}
+with $k_F=(1.5\pi^2 n_0)^{1/3}$ and $E_F^*=\sqrt{k_F^2+M^{*2}}$. The $\rho$ meson supplies the rest, $J_1=\Esym-J_0$ and $L_1=\Lsym-L_0$, which gives
+\begin{equation}
+\Lambda_{\omega\rho} = \frac{3J_1-L_1}{96\,J_1^2\,W_0\,(dW/dn)_0},\qquad
+\frac{1}{C_\rho^2} = \frac{n_0}{8J_1} - 2\Lambda_{\omega\rho}W_0^2,
+\end{equation}
+where $W_0$ solves $W_0/C_\omega^2+\zeta W_0^3/6=n_0$ and $(dW/dn)_0=[1/C_\omega^2+\zeta W_0^2/2]^{-1}$. I took these relations from the parameter note \texttt{RMFparameters.pdf} (Eqs.~19--23), which is the isovector prescription of Thapa and Sinha \cite{ThapaSinha2022} that Sarkar et al.\ also follow \cite{Sarkar2023} \fillin{confirm from the title page of the PDF}, and generalised them to $\zeta\neq0$; for $\zeta=0$ they reduce to the original form. Table~\ref{tab:J0L0} gives $J_0$ and $L_0$ as my code computes them.
+
+\begin{table}[h]
+\centering
+\caption{Isoscalar part of $\Esym$ and $\Lsym$ for each model.}\label{tab:J0L0}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
+\toprule
+Model & $J_0$ (MeV) & $L_0$ (MeV)\\
+\midrule
+GM1 & 15.84 & 43.96\\
+GM2 & 14.41 & 35.05\\
+FSUGarnet & 18.61 & 59.36\\
+IOPB-I & 17.88 & 56.73\\
+BigApple & 17.99 & 59.02\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Which effective mass goes to NSCool.} RMF has two effective masses and it is easy to mix them. The Dirac mass $M^*=M-g_\sigma\sigma$ is used to build the EoS. The Landau mass $m_L^*=\sqrt{k_F^2+M^{*2}}$ gives the true density of states at the Fermi surface, $N(0)=k_FE_F^*/\pi^2$, and this is what the heat capacity and neutrino emissivities in NSCool need. So in the tables for NSCool I write the Landau masses, separately for neutrons and protons. The difference is big: for GM1 at $n=1.6$ fm$^{-3}$ the Dirac mass would make the DUrca rate about 14 times too small.
+
+%=====================================================================
+\section{Models and source papers}\label{sec:models}
+%=====================================================================
+\begin{table}[h]
+\centering
+\small
+\caption{Isoscalar inputs (held fixed). $C_i^2$ in fm$^2$.}\label{tab:models}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcccccccl}
+\toprule
+Model & $n_0$ (fm$^{-3}$) & $E/A$ (MeV) & $K$ (MeV) & $M^*/M$ & $C_\sigma^2$ & $C_\omega^2$ & $\zeta$ & Source\\
+\midrule
+GM1 & 0.153 & $-16.3$ & 300 & 0.70 & 11.79 & 7.149 & 0 & \cite{GM1991}\\
+GM2 & 0.153 & $-16.3$ & 300 & 0.78 & 9.148 & 4.820 & 0 & \cite{GM1991}\\
+FSUGarnet & 0.153 & $-16.23$ & 229.6 & 0.578 & 17.409 & 11.940 & 0.0231 & \cite{FSUGarnet}\\
+IOPB-I & 0.149 & $-16.09$ & 222.6 & 0.595 & 16.873 & 11.401 & 0.0191 & \cite{IOPBI}\\
+BigApple & 0.155 & $-16.34$ & 227.1 & 0.608 & 15.007 & 9.684 & 0.0009 & \cite{BigApple}\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\noindent For GM1 and GM2 I used Table~II of Glendenning and Moszkowski directly (GM3 from the same table is used only for code tests). For FSUGarnet, IOPB-I and BigApple I took $C_\sigma^2$ and $C_\omega^2$ from the published couplings and meson masses, and derived $b$, $c$ and $\zeta$ from the published saturation properties using $P(n_0)=0$, the $\sigma$ field equation and the energy density. The file \texttt{isoscalar\_fit.py} does the same fit in closed form and I used it as a check.
+
+\noindent Source papers (please also see the bibliography):
+\begin{itemize}
+\item GM1, GM2: Glendenning and Moszkowski, PRL 67, 2414 (1991), \doi{10.1103/PhysRevLett.67.2414}.
+\item FSUGarnet: Chen and Piekarewicz, PLB 748, 284 (2015), \doi{10.1016/j.physletb.2015.07.020}.
+\item IOPB-I: Kumar, Patra and Agrawal, PRC 97, 045806 (2018), \doi{10.1103/PhysRevC.97.045806}.
+\item BigApple: Fattoyev, Horowitz, Piekarewicz and Reed, PRC 102, 065805 (2020), \doi{10.1103/PhysRevC.102.065805}.
+\item Test set NL3$\omega\rho$: NL3 of Lalazissis, K\"onig and Ring, PRC 55, 540 (1997), \doi{10.1103/PhysRevC.55.540}, in the $\omega\rho$ version listed by Fortin et al., PRC 94, 035804 (2016), \doi{10.1103/PhysRevC.94.035804}.
+\end{itemize}
+
+%=====================================================================
+\section{Calculating the EoS and filtering them}\label{sec:eos}
+%=====================================================================
+\subsection{The $(\Esym,\Lsym)$ grid}
+For FSUGarnet, IOPB-I and BigApple the grid is
+\[
+\Esym = 25.0,\,26.5,\,\dots,\,43.0~{\rm MeV}~(13~\text{values, step }1.5),\qquad
+\Lsym = 30,\,35,\,\dots,\,130~{\rm MeV}~(\text{step }5).
+\]
+GM1 and GM2 were generated earlier on a finer and less regular $\Esym$ mesh and keep six extra values ($\Esym=26,30,32,36,38,42$ MeV) and one off-grid $\Lsym$ each (93.9 and 89.3 MeV, the values where $\Lambda_{\omega\rho}=0$). I checked that this does not change the answer: using only the common uniform sub-grid (742 EoS) gives the same $\Lsym$ interval and moves $\Esym$ by half a step (Sec.~\ref{sec:syst}). The grid covers the PREX-2 box of Refs.~\cite{Reed2021,Sarkar2023} and goes well below it.
+
+\subsection{Solving the EoS}
+For each point (\texttt{rmf\_lambda\_and\_eos.py}):
+\begin{enumerate}
+\item compute $C_\rho^2$ and $\Lambda_{\omega\rho}$ from $(\Esym,\Lsym)$;
+\item on 320 densities from 0.03 to 1.6 fm$^{-3}$ (geometric spacing), find the proton fraction by bisection so that $\mu_n=\mu_p+\mu_e$, $\mu_\mu=\mu_e$ and $n_p=n_e+n_\mu$;
+\item inside this, solve the $\sigma$ equation for $M^*$ by bisection and the coupled $\omega$--$\rho$ equations by Newton iteration;
+\item compute $\varepsilon$, $P$ (from $P=\sum_i\mu_in_i-\varepsilon$), Landau masses, $\mu_B$, and check $k_{Fn}\le k_{Fp}+k_{Fe}$ at each density, which gives the DUrca threshold density;
+\item estimate the crust--core transition from the sign change of $K_\mu$, the compressibility at constant chemical potential \cite{LattimerPrakash2007}.
+\end{enumerate}
+
+\subsection{Filtering}
+A point is removed if:
+\begin{enumerate}
+\item \textbf{no real $g_\rho$ exists} ($J_1\le0$ or $1/C_\rho^2\le0$). Because of this the lowest reachable $\Lsym$ is 35 MeV for BigApple, 45 MeV for IOPB-I and 50 MeV for FSUGarnet;
+\item \textbf{the $\rho$ meson becomes tachyonic}: for $\Lambda_{\omega\rho}<0$ the effective $\rho$ mass $1/C_\rho^2+2\Lambda_{\omega\rho}W^2$ falls with density; if it reaches zero below 1.6 fm$^{-3}$ the symmetry energy becomes negative. This is the unphysical region also seen by Hornick et al.\ \cite{Hornick2018}. It gives an upper limit $\Lsym< L_0+3(\Esym-J_0)(x^2+1)/(x^2-1)$ with $x=n_{\max}/n_0$;
+\item \textbf{the stable branch is too short}: I keep only the rising-pressure branch connected to saturation, and it must go below 0.07 fm$^{-3}$ (for the crust join) and above 1.0 fm$^{-3}$ (for the maximum mass);
+\item $M_{\max}<2.0\,\Msun$ \cite{Demorest2010,Antoniadis2013,Fonseca2021};
+\item $v_s^2=dP/d\varepsilon\ge1$ anywhere in the core.
+\end{enumerate}
+After all cuts, \textbf{864 EoS} remain, and every one of them is used for all 16 stars.
+
+%=====================================================================
+\section{Attaching the crust and formatting for NSCool}\label{sec:crust}
+%=====================================================================
+This step is done by \texttt{automationandformatting-2.py}. NSCool reads an EoS file in the format of its \texttt{APR\_EOS\_Cat.dat}: first line \texttt{Itext Imax Icore}, then text lines, then 17 columns ($\rho$, $P$, $n_B$, $Y_e$, $Y_\mu$, $Y_n$, $Y_p$, four hyperon fractions, $m^*_p/m$, $m^*_n/m$, four hyperon masses), from high to low density. I use the catalysed crust that comes with NSCool (Haensel--Zdunik--Dobaczewski \cite{HZD1989} and Negele--Vautherin \cite{NegeleVautherin1973}). A catalysed crust is right here because 15 of the 16 stars are isolated and not accreting \cite{BPS1971,DouchinHaensel2001}.
+
+Steps:
+\begin{enumerate}
+\item Convert my RMF table to 17 columns (hyperon columns zero, effective mass converted from MeV to $m^*/938$). The unit decision is made once for the whole column, not row by row; a row-by-row decision made a jump of a factor $\sim850$ in $m^*$ at the centre of the star in an early version.
+\item Remove the APR core from the template and keep the crust.
+\item Join: the top crust row is $Z=32$, $A_{\rm cell}=982$ at $n_B=0.0789$ fm$^{-3}$. I pick the core row with $P_{\rm core}\ge P_{\rm crust}$ and $\rho_{\rm core}\ge\rho_{\rm crust}$ (so density only falls outward), with $|\Delta P|/P\le5\%$, and among those the best match of $Y_e$ with the crust $Z/A$. For stiff symmetry energies the core pressure is too high at 0.079 fm$^{-3}$, so the join may move up to 20 crust rows deeper.
+\item Update \texttt{Icore} and \texttt{Imax} and write \texttt{<MODEL>\_J<Esym>\_L<Lsym>\_CAT.dat}.
+\item Diagnostic plot of $P$ against $\mu_B=(\varepsilon+P)/n_B$ for all tables (\texttt{mu\_vs\_P\_all\_eos.png}); this must be smooth and monotonic across the join.
+\end{enumerate}
+
+\paragraph{Known limitation.} A non-relativistic crust is glued to a relativistic core at a fixed density for every $(\Esym,\Lsym)$, while the true transition density falls when $\Lsym$ grows. Fortin et al.\ \cite{Fortin2016} measured the size of this effect; I treat it as a systematic and did not build a unified crust.
+
+\paragraph{Seam bug, found and fixed.} The script always added one fixed crust row at $n=0.0789$ fm$^{-3}$. In 11 of the 864 tables (all at $\Esym=40$--43 MeV) the core already started lower, at 0.07834 fm$^{-3}$, so $n_B$ decreased going inward and the pressure jumped by about 30\%. \texttt{fix\_seam\_eos.py} removes only that extra row in these files (no invented point) and corrects \texttt{Imax}.
+
+\paragraph{Audit of all tables.} \texttt{audit\_eos\_tables.py} reads each table exactly as NSCool does (using \texttt{Imax}). For all 864 tables: pressure and $n_B$ are monotonic; the fractional pressure step across the crust--core boundary divided by the steps of its neighbours has median 0.063, 90th percentile 0.62 and maximum 2.35 (no table above 3); no table has $v_s^2>1$ above $1.5\times2.8\times10^{14}$ g\,cm$^{-3}$. (An earlier version of the audit read past \texttt{Imax} into the next section of the file and reported fake problems in every table; this was fixed before these numbers.)
+
+%=====================================================================
+\section{TOV and comparison with published mass--radius results}\label{sec:tov}
+%=====================================================================
+\subsection{The TOV code}
+\texttt{TOVprofile2\_automated.f90} solves \cite{Tolman1939,OV1939}
+\begin{equation}
+\frac{dP}{dr}=-\frac{(\varepsilon+P)(m+4\pi r^3P)}{r(r-2m)},\qquad \frac{dm}{dr}=4\pi r^2\varepsilon,\qquad
+\frac{dm_B}{dr}=\frac{4\pi r^2 n_B m_N}{\sqrt{1-2m/r}},
+\end{equation}
+with RK4 and a 10 m step, halved near the surface until $|\Delta P|/P\le0.1$. The metric function $\phi$ is integrated and matched to the Schwarzschild metric at the surface, because NSCool needs it. I use $GM_\odot/c^2=1.476625$ km. For every EoS the code (i) scans central densities from $n_B=0.08$ fm$^{-3}$ upward and writes the $M$--$R$ curve, (ii) keeps the stable branch up to $M_{\max}$, (iii) finds by bisection the central pressure for 1.0, 1.1, \dots\ $\Msun$ (to $10^{-6}\,\Msun$) and writes each profile in the NSCool format.
+
+Three fixes were made and tested: the density is now re-interpolated at every RK4 stage (keeping it fixed over-estimated the mass by about 0.7\%); the adaptive surface step (the radius was about 0.6\% short without it); and double instead of quadruple precision, which agrees with quadruple precision to 12--13 digits and is about 7 times faster.
+
+\subsection{Comparison with published results}
+\begin{table}[h]
+\centering
+\caption{Check of the full chain (EoS $\to$ crust $\to$ TOV) against published maximum masses.}\label{tab:mmax}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccc}
+\toprule
+Model and setting & $M_{\max}$ mine ($\Msun$) & $M_{\max}$ published ($\Msun$) & Ref.\\
+\midrule
+GM1 ($\Esym=32.5$, $\Lambda_{\omega\rho}=0$) & 2.360 & 2.35 (2.36 in the text) & \cite{GM1991}\\
+GM2 ($\Esym=32.5$, $\Lambda_{\omega\rho}=0$) & 2.075 & 2.08 & \cite{GM1991}\\
+GM3 ($\Esym=32.5$, $\Lambda_{\omega\rho}=0$) & 2.015 & 2.02 & \cite{GM1991}\\
+NL3$\omega\rho$ ($\Esym=31.7$, $\Lsym=55.5$)$^a$ & 2.756 & 2.75 & \cite{Fortin2016}\\
+FSUGarnet ($\Esym=30.95$, $\Lsym=51.04$)$^a$ & 2.073 & 2.07 & \cite{FSUGarnet}\\
+IOPB-I ($\Esym=33.30$, $\Lsym=63.58$)$^a$ & 2.120 & 2.15 & \cite{IOPBI}\\
+BigApple ($\Esym=31.32$, $\Lsym=39.80$)$^a$ & 2.593 & 2.60 & \cite{BigApple}\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\smallskip
+{\footnotesize $^a$ Computed with \texttt{durca\_threshold\_mass.py}: same EoS code, but a short Python TOV using the RMF core table down to 0.03 fm$^{-3}$ plus a $\Gamma=4/3$ outer layer instead of the NSCool crust. It gives 2.361 $\Msun$ for GM1 (full pipeline 2.360), so masses are reliable to about 0.01 $\Msun$. Radii from it are 0.2--0.4 km too small without the real crust, so I do not quote them. The $\Esym$, $\Lsym$ of the three modern sets are the published values in Table~2 of Ref.~\cite{Das2021}.}
+\end{table}
+For GM, setting $\Lsym=L_0+3(\Esym-J_0)$ makes $\Lambda_{\omega\rho}$ exactly zero, and with $\Esym=32.5$ MeV this is the original GM isovector sector. The code returns $C_\rho^2=4.414$ fm$^2$ (GM1) and 4.794 fm$^2$ (GM2, GM3), against 4.411 and 4.791 in their Table~II, and the maximum masses agree within 0.2--0.5\%. The NL3$\omega\rho$ test is the one with $\Lambda_{\omega\rho}\ne0$: I do not copy its $g_\rho$ and $\Lambda$ but let the code derive them from the published $\Esym$ and $\Lsym$; it returns $\Lambda_{\omega\rho}=0.0297$, against about 0.03 in the literature, and $M_{\max}=2.756\,\Msun$ against 2.75. FSUGarnet and BigApple agree within 0.3\%. IOPB-I comes out 1.4\% low (2.120 against 2.149). I traced this to $\zeta$: the code derived $\zeta=0.0191$ for IOPB-I, while the published E-RMF value $\zeta_0=3.103$ with $g_\omega/4\pi=1.062$ \cite{IOPBI} corresponds to $\zeta=\zeta_0/g_\omega^2=0.0174$ in this Lagrangian. With the published $\zeta$ (and $b$, $c$, $C_\sigma^2$, $C_\omega^2$ refitted exactly to the published saturation point) the code gives $M_{\max}=2.149\,\Msun$, exactly the published value; the same test with the published $\zeta=0.0235$ (FSUGarnet) and $0.0007$ (BigApple) gives 2.067 and 2.604 $\Msun$ (published 2.07 and 2.60). So the solver, TOV and Lagrangian are right, and the small differences come only from the $\zeta$ values used in the scan. Effect on the analysis: $M_{\max}$ of IOPB-I rises by 0.03 $\Msun$ and $M_{\rm DU}$ changes by at most 0.02 $\Msun$ (Sec.~\ref{sec:checks}). \fillin{confirm the three published $\zeta$ values from the parameter tables of Refs.~\cite{FSUGarnet,IOPBI,BigApple}; decide whether to rerun the scan with them}
+
+%=====================================================================
+\section{Cooling with NSCool}\label{sec:cooling}
+%=====================================================================
+\subsection{Setup}
+I use NSCool of D.~Page \cite{NSCool}, with the neutrino emissivities of Yakovlev et al.\ \cite{Yakovlev2001}, superfluid suppression factors from \cite{Yakovlev1999}, and pair breaking and formation emission as in \cite{Page2009}. For every EoS and mass, \texttt{run\_cooling\_prl.py} writes the input file (crust, my \texttt{\_CAT.dat}, my TOV profile, and the physics files), runs NSCool and keeps $T_{\rm eff}^\infty(t)$. The masses are $M=1.0,\,1.4,\,1.8,\,2.0\,\Msun$.
+
+\subsection{Mechanisms (modes)}
+\begin{table}[h]
+\centering
+\small
+\caption{Cooling scenarios used. Gap names follow NSCool: neutron $^1S_0$ SFB \cite{SFB2003}, neutron $^3P_2$ ``a'' or ``b'' \cite{Page2004}, proton $^1S_0$ T73 \cite{Takatsuka1973}.}\label{tab:modes}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lll}
+\toprule
+Mode & Neutrino processes & Pairing\\
+\midrule
+\texttt{durca\_only} & DUrca + MUrca + others & none\\
+\texttt{durca\_sf} & DUrca + MUrca + PBF & SFB / $^3P_2$ ``a'' / T73\\
+\texttt{durca\_sf\_altB} & same & SFB / $^3P_2$ ``b'' / T73\\
+\texttt{murca\_sf} & without DUrca & SFB / $^3P_2$ ``a'' / T73\\
+\texttt{sf\_no3p2} & DUrca + MUrca + PBF & SFB / no $^3P_2$ / T73\\
+\texttt{durca\_sf\_vc} & as \texttt{durca\_sf} + vortex creep heating & SFB / $^3P_2$ ``a'' / T73\\
+\texttt{durca\_sf\_vc\_carbon} & as above, carbon envelope & SFB / $^3P_2$ ``a'' / T73\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\subsection{Envelopes}
+The default is the iron envelope of Gudmundsson, Pethick and Epstein \cite{GPE1983} as implemented in NSCool. I also ran the light element envelope of Potekhin, Chabrier and Yakovlev \cite{PCY1997} with $\eta=0,\,0.1,\,0.5,\,1$ as a first test (\texttt{test\_envelope\_effect.py}, \texttt{run\_cooling\_accreted.py}, \texttt{envelope\_comparison\_analysis.py}). In the final analysis a carbon envelope is used \emph{only} for Cas~A and XMMU~J1732, the two stars with published carbon atmospheres \cite{HoHeinke2009,Klochkov2013}. The value $\eta=6\times10^{-10}$ is not fitted to the temperatures: it is chosen so that the envelope gives the $+0.1351$ dex rise over iron that the Hernquist--Applegate scaling $(A^3/Z^4)^{1/4}$ predicts for $^{12}$C \cite{HernquistApplegate1984}; across the 864 EoS the median rise is $+0.138$ dex. The other 14 stars keep iron. Letting every star pick its own envelope would be fitting 16 points with 16 choices, so I did not do it. Magnetised envelopes are in Report~3.
+
+\subsection{Late-time heating}
+Without heating every curve stops when the star falls below the $10^4$ K floor of the microphysics tables. The median stopping point is $\log t=6.23$ with superfluidity and 6.54 without, so \emph{no} EoS reaches PSR J0437$-$4715 ($\log t=6.85$) or PSR B0950+08 ($\log t=7.24$). These old stars are warm, which needs some late heating \cite{GonzalezReisenegger2010}. I added vortex creep heating \cite{Alpar1984,ShibazakiLamb1989} with one global parameter (the excess angular momentum, $J_{44}=1$). Then all curves continue to $\log t\approx9.7$ and all 16 stars are compared with real predictions.
+
+\subsection{Practical points}
+NSCool writes scratch files with fixed names in \texttt{Model\_1/}, so two runs in one directory overwrite each other; this happened once. Now every job runs in its own worker directory (\texttt{make\_workers.py}). After a data loss on 19 September 2026 all runs were regenerated for the 864 EoS only (\texttt{regenerate\_all\_cooling.sh}), and the $\chi^2$ tables are copied outside the project after each mode. All 3456 runs of the final analysis (864 EoS $\times$ 4 masses) ended normally and reached $\log t\ge9.58$ (median 9.68).
+
+%=====================================================================
+\section{Observational data}\label{sec:obs}
+%=====================================================================
+Ages and temperatures of 14 stars are taken from the compilation of Potekhin et al.\ 2020 \cite{Potekhin2020} (online version: \url{http://www.ioffe.ru/astro/NSG/thermal/cooldat.html}). PSR J0437$-$4715 is from Durant et al.\ 2012 \cite{Durant2012} and PSR B0950+08 from Pavlov et al.\ 2017 \cite{Pavlov2017}. The last column gives the original measurement paper for each object, so that it can be traced.
+
+\begin{table}[h]
+\centering
+\small
+\caption{The 16 stars. $\sigma$ is the error on $\log_{10}T$. Env.: envelope used.}\label{tab:obs}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{rlccccl}
+\toprule
+ & Object & $\log t$ (yr) & $\log T_{\rm eff}^\infty$ (K) & $\sigma$ & Env. & Original measurement\\
+\midrule
+1 & Cas A & 2.51 & 6.26 & 0.05 & C & \cite{HoHeinke2009}; age \cite{Fesen2006}\\
+2 & XMMU J173203.3$-$344518 & 3.48 & 6.25 & 0.10 & C & \cite{Klochkov2013}\\
+3 & RX J0822$-$4300 & 3.57 & 6.07 & 0.05 & Fe & \cite{Zavlin1999,Becker2012}\\
+4 & 1E 1207.4$-$5209 & 3.85 & 6.20 & 0.10 & Fe & \cite{DeLuca2004}\\
+5 & PSR B0833$-$45 (Vela) & 4.05 & 5.88 & 0.10 & Fe & \cite{Pavlov2001}\\
+6 & PSR B1706$-$44 & 4.24 & 5.81 & 0.10 & Fe & \cite{McGowan2004}\\
+7 & PSR J0538+2817 & 4.48 & 5.95 & 0.10 & Fe & \cite{Ng2007}\\
+8 & PSR B2334+61 & 4.61 & 5.53 & 0.15 & Fe & \cite{McGowan2006}\\
+9 & PSR B0656+14 & 5.05 & 5.71 & 0.10 & Fe & \cite{DeLuca2005}\\
+10 & Geminga & 5.53 & 5.75 & 0.10 & Fe & \cite{DeLuca2005}\\
+11 & RX J1856.5$-$3754 & 5.70 & 5.70 & 0.10 & Fe & \cite{Ho2007}\\
+12 & PSR B1055$-$52 & 5.73 & 5.59 & 0.10 & Fe & \cite{DeLuca2005}\\
+13 & RX J0720.4$-$3125 & 5.78 & 5.72 & 0.10 & Fe & \cite{Motch2003}\\
+14 & PSR J2043+2740 & 5.88 & 5.22 & 0.15 & Fe & \cite{Becker2004}\\
+15 & PSR J0437$-$4715 & 6.85 & 5.34 & 0.15 & Fe & \cite{Durant2012}\\
+16 & PSR B0950+08 & 7.24 & 5.02 & 0.20 & Fe & \cite{Pavlov2017}\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{Correction of RX J0822$-$4300.} The value used earlier (and still written in the older scripts) was $\log T=6.24$, i.e.\ 150 eV. When I checked the source, this is the \emph{hot} component of the two-component fit of Zavlin et al.\ \cite{Zavlin1999}; the cold 67 eV component is the one with a 12 km emitting radius, i.e.\ the whole star. A hydrogen atmosphere over the full surface gives $T^\infty=1.18\pm0.05$ MK, $\log T=6.072$, which is also the value in Potekhin et al.\ \cite{Potekhin2020}. With the old value RX J0822 alone gave 15.9 of a total $\chi^2$ of 38.1; with 6.072 it gives 1.7 of 22.3.
+
+\noindent\textbf{Source of these numbers.} The paper~1 draft attributes the 67/150 eV two-component fit to Zavlin et al.\ 1999 \cite{Zavlin1999}, but that paper reports a single hydrogen/helium atmosphere fit with $T^\infty_{\rm eff}=(1.6$--$1.9)\times10^6$ K. My analysis script (\texttt{full\_multimass\_5mode.py}) records the real sources: the two-component (2NSA) fit is the one listed in the Potekhin et al.\ 2020 catalogue \cite{Potekhin2020}, and the full-surface magnetised hydrogen (nsmax) value $1.18\pm0.05$ MK is noted there as ``Shibanov et al.\ (2016)''. The only Shibanov et al.\ 2016 paper I can find (ApJ 831, 112) is about the neutron star Calvera, so this citation must be checked in Table~1 of Potekhin et al.\ 2020 before the paper is submitted. \fillin{find the exact paper for the 2NSA fit and the 1.18 MK value in the Potekhin 2020 table; replace the Zavlin 1999 citation in the paper~1 draft}
+
+The same script notes that other acceptable fits span 0.79--1.34 MK ($\log T=5.90$--6.13), so $\sigma=0.05$ dex is probably too small for this star; $\sigma\approx0.12$ would cover the spread. This is a systematic worth testing, since RX~J0822 had such a large weight before the correction.
+
+\paragraph{Still to check.} Five other entries in the older list differ from Potekhin et al.\ 2020 by more than 0.1 dex (four of them colder than what I used). I have not changed them yet because each needs a decision on blackbody vs atmosphere vs full surface fit. Since my models already run cold at late ages, changing them would probably make the fit worse, not better.
+
+%=====================================================================
+\section{$\chi^2$ analysis and profile likelihood}\label{sec:stats}
+%=====================================================================
+\subsection{The $\chi^2$}
+For one EoS I interpolate each cooling curve at the age of each star and compute
+\begin{equation}
+\chi^2 = \sum_{i=1}^{16}\min_{M}\left[\frac{\big(\log T^{\rm pred}(t_i,M)-\log T^{\rm obs}_i\big)^2}{\sigma_i^2} + \frac{(M-1.4)^2}{\sigma_M^2}\right].
+\end{equation}
+So each star can choose the mass (1.0, 1.4, 1.8, 2.0 $\Msun$) that fits it best, which is a profile over the unknown mass of each star, but it pays a penalty for going away from $1.4\,\Msun$.
+
+\paragraph{Why the mass prior.} Without the penalty, 11 of the 16 stars choose $M=1.0\,\Msun$ and $\chi^2/{\rm dof}=0.78$. That looks good but is not believable, because the observed mass distribution peaks near $1.4\,\Msun$ \cite{OzelFreire2016} and $1\,\Msun$ stars are rare. With $\sigma_M=0.3\,\Msun$, 14 stars take $1.4$ and two take $1.8\,\Msun$, and $\chi^2/{\rm dof}=1.60$. For comparison, $\sigma_M=0.2$ gives 1.88 and all stars fixed at $1.4\,\Msun$ gives 2.04. I use $\sigma_M=0.3\,\Msun$.
+
+\paragraph{No extrapolation.} A cooling curve is only used up to where it was actually computed. In an earlier version, when a curve stopped before the age of a star, the last temperature was kept (``frozen tail''). This is not neutral: slowly cooling models live longer and are compared with their real, wrong, temperatures, while fast cooling models get a flattering frozen value. Over the 864 EoS at all masses, 37.7\% of the runs without pairing reach $\log t=6.85$, but \emph{zero} of the runs with DUrca and superfluidity do. So freezing biased the result toward fast cooling. Lowering the temperature floor is not possible (below $10^4$ K the microphysics tables stop and NSCool fails), so the fix has to be in the analysis, and the heating then removes the problem because all curves reach the oldest star.
+
+\subsection{From $\chi^2$ to intervals}
+The free quantities are $\Esym$, $\Lsym$ and the parametrisation, and the star masses are profiled as above. Since $\chi^2/{\rm dof}>1$ I first inflate all errors by the Particle Data Group scale factor $S=\sqrt{\chi^2/{\rm dof}}=1.26$ \cite{PDG2024}. Then I turn $\chi^2$ into a likelihood $\propto e^{-\chi^2/2}$ on the grid, give equal weight to each parametrisation, and marginalise to get one-dimensional distributions for $\Lsym$ and $\Esym$, from which I take the 68\% and 95\% intervals. As a second view I also look at the profile $\chi^2_{\rm prof}(\Lsym)=\min_{\Esym,\,\rm model}\chi^2$ against $\Lsym$ (Fig.~2 of the draft). Intervals are limited by the grid step, 5 MeV in $\Lsym$ and 1.5 MeV in $\Esym$.
+
+%=====================================================================
+\section{Results}\label{sec:results}
+%=====================================================================
+\subsection{Effect of each correction}
+\begin{table}[h]
+\centering
+\caption{How each correction changed the fit (same 864 EoS in every row).}\label{tab:progress}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccc}
+\toprule
+Treatment & Stars used & $\chi^2/N$ & $\chi^2/{\rm dof}$\\
+\midrule
+extrapolated (frozen tail) & 16, two frozen & 4.11 & 4.70\\
+no extrapolation & 14 & 2.51 & 2.93\\
++ RX J0822 corrected & 14 & 1.86 & 2.17\\
++ late-time heating & 16 & 1.47 & 1.68\\
++ carbon envelopes, mass prior & 16 & 1.40 & 1.60\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+The total improvement is a factor of 2.9 in $\chi^2/{\rm dof}$, and none of the steps tunes a parameter against the temperatures.
+
+\subsection{Constraint on the symmetry energy}
+\begin{align}
+\Lsym &= 50\text{--}75~{\rm MeV}~(68\%),\qquad 35\text{--}80~{\rm MeV}~(95\%),\\
+\Esym &= 28.0\text{--}36.0~{\rm MeV}~(68\%),\qquad 25.0\text{--}40.0~{\rm MeV}~(95\%),
+\end{align}
+with $\chi^2/{\rm dof}=1.60$. The $\Esym$ interval covers most of the scanned range, so it is a weak constraint; this is expected because DUrca depends on how fast $S(n)$ grows, not on its value at $n_0$.
+
+The single best EoS is GM2 at $\Esym=32.5$, $\Lsym=80$ MeV. I do not read anything into which model is best, because GM1 and GM2 have no published meson masses and cannot be used for nuclei (Report~2).
+
+\subsection{Direct Urca threshold masses inside the allowed region}\label{sec:mdu}
+For each EoS the threshold density $n_{\rm DU}$ comes from the EoS code, and $M_{\rm DU}$ is the mass of the star whose central density equals $n_{\rm DU}$. I read it off the pipeline $M$--$R$ curves (\texttt{MRcurve\_*\_CAT.dat} from \texttt{TOVprofile2\_automated.f90} with the NSCool crust): the central energy density at $n_{\rm DU}$ is taken from the EoS table and $M$ is interpolated on the stable branch. Curves were available for 683 of the 864 EoS and for 152 of the EoS in the box $\Lsym=50$--75 MeV, $\Esym=28$--36 MeV. As a cross-check, \texttt{durca\_threshold\_mass.py} (a short Python TOV without the real crust) gives the same $M_{\rm DU}$ within 0.015 $\Msun$ (mean difference 0.0003 $\Msun$ over 624 EoS). Data: \texttt{reports/data/durca\_threshold\_pipeline\_MR.dat}.
+
+\begin{table}[h]
+\centering
+\caption{Direct Urca threshold mass in the 68\% box, from the pipeline $M$--$R$ curves. ``none'' means DUrca never opens in a stable star.}\label{tab:mdu}
+\begin{tabular}{lccc}
+\toprule
+Model & EoS & $M_{\rm DU}\le1.4\,\Msun$ & $M_{\rm DU}$ range (median) of the rest\\
+\midrule
+GM1 & 24 & 0 & 1.90--2.31 (2.21); 15 none\\
+GM2 & 21 & 0 & 1.64; 20 none\\
+FSUGarnet & 35 & 7 & 1.15--1.99 (1.64)\\
+IOPB-I & 36 & 7 & 1.11--2.06 (1.64)\\
+BigApple & 36 & 1 & 1.40--2.60 (2.17)\\
+\midrule
+all & 152 & 15 (9.9\%) & 1.11--2.60 (1.77); 35 none\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $\Esym=32.5$ MeV, $M_{\rm DU}$ falls smoothly with $\Lsym$: for FSUGarnet from 1.78 $\Msun$ at $\Lsym=50$ to 1.37 at 75, for IOPB-I from 1.80 to 1.33, for BigApple from 2.40 to 1.69; for GM1 DUrca appears only at $\Lsym\ge70$ (2.26 and 1.99 $\Msun$) and for GM2 not at all in this box. The single best EoS (GM2, 32.5, 80) has $M_{\rm DU}=1.47\,\Msun$ and $M_{\max}=2.006\,\Msun$. So the picture behind the fit is: 1.4 $\Msun$ stars without DUrca, and the two cold stars that pick 1.8 $\Msun$ are above threshold.
+
+\paragraph{Cross-check with Sarkar, Thapa and Sinha.} For GM1 at their point $\Esym=38.1$, $\Lsym=85$ MeV my codes give $n_{\rm DU}=0.305$ fm$^{-3}$ and $M_{\rm DU}=1.05\,\Msun$; they report about 0.289 fm$^{-3}$ and $0.978\,\Msun$ \cite{Sarkar2023}. The agreement is at the 5\% level, and the difference is expected because they also fix $\Esym(0.1~{\rm fm}^{-3})\approx28$ MeV and use a different crust in the TOV. At $\Lsym=105$ MeV I get $0.78\,\Msun$, again close to their 0.8--0.9 $\Msun$.
+
+\subsection{Implied radius}
+Pushing the result to stellar structure gives $R(1.4\,\Msun)=12.96$--$13.63$ km at 68\% ($13.20\pm0.39$ km), compared with 12.18--14.49 km for a flat weight over all 864 EoS. This is $1.0\sigma$ above the NICER value $12.45\pm0.65$ km \cite{Miller2021,Riley2021}. The test is meaningful: 48 EoS (all GM2 with $\Lsym=30$--55 MeV) do give $R_{1.4}<12.45$ km, and their best $\chi^2/N$ is 1.78 against 1.40 overall. $R_{1.4}$ and $\Lsym$ are correlated at 0.892 over the grid, so the radius is mostly the same information as $\Lsym$. I do not quote $M_{\max}$: its lower edge is my own $2\,\Msun$ cut, and cooling probes 2--3 $n_0$, not the centre of the heaviest stars.
+
+\subsection{Discussion and significance}
+\begin{enumerate}
+\item Cooling gives a constraint on $\Lsym$ that does not use any laboratory input.
+\item $\Lsym=50$--75 MeV is lower than the PREX-2 inference $106\pm37$ MeV \cite{Reed2021} used in Ref.~\cite{Sarkar2023}, and agrees with nuclear structure results: 35--70 MeV from isobaric analog states \cite{DanielewiczLee2014}, 40.5--61.9 MeV from the combination of Lattimer and Lim \cite{LattimerLim2013}, about $60\pm25$ MeV in Roca-Maza et al.\ \cite{RocaMaza2011}, and with the chiral EFT \cite{Drischler2020} and astrophysical \cite{Essick2021} ranges. I see this as a check of the cooling method more than an improvement in precision. The new analysis of Montefusco et al.\ \cite{Montefusco2026} finds a lower $\Lsym=29\pm8$ MeV from nuclear data; this tension is discussed in Sec.~\ref{sec:newpaper}.
+\item Physically, the data want DUrca to open at a moderate density: light stars stay warm and heavier stars can cool fast. With a very stiff symmetry energy (PREX-2 central value) DUrca opens already in light stars and the young hot stars become too cold.
+\item Methodological lessons: do not extrapolate cooling curves (the frozen tail even inverted the preferred $\Esym$ and the ranking of mechanisms); include late heating; use the known atmosphere for stars where it is measured.
+\end{enumerate}
+
+%=====================================================================
+\section{Checks and verification}\label{sec:checks}
+%=====================================================================
+\subsection{EoS code}
+All numbers below are what the codes printed.
+\begin{enumerate}
+\item \textbf{Saturation} from the input couplings:
+\begin{center}\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcccc}
+\toprule
+Model & $M^*/M$ (target) & $E/A$ MeV (target) & $P$ (MeV fm$^{-3}$) & $K$ MeV (target)\\
+\midrule
+GM1 & 0.7003 (0.70) & $-16.358$ ($-16.3$) & $-7.1\times10^{-3}$ & 299.1 (300)\\
+GM2 & 0.7802 (0.78) & $-16.334$ ($-16.3$) & $-4.6\times10^{-3}$ & 299.4 (300)\\
+FSUGarnet & 0.5780 (0.578) & $-16.229$ ($-16.23$) & $5.9\times10^{-5}$ & 229.7 (229.6)\\
+IOPB-I & 0.5950 (0.595) & $-16.090$ ($-16.09$) & $3.7\times10^{-5}$ & 221.9 (222.6)\\
+BigApple & 0.6080 (0.608) & $-16.340$ ($-16.34$) & $5.0\times10^{-5}$ & 230.2 (227.1)\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+The small GM differences come from the 4-digit rounding in their Table~II. For BigApple $K$ comes out 1.4\% higher than published. Reason: for the $\zeta\neq0$ sets $b$, $c$, $\zeta$ were derived from $P(n_0)=0$, the $\sigma$ equation and the energy density with $C_\sigma^2$, $C_\omega^2$ taken from the published couplings, so $K$ was not imposed. Refitting the isoscalar sector exactly to $(n_0,E/A,K,M^*/M)$ at fixed $\zeta$ (a $\zeta\neq0$ version of \texttt{isoscalar\_fit.py}) gives $K=227.1$ MeV exactly, and changes $M_{\max}$ by $\le0.001\,\Msun$ and $M_{\rm DU}$ by $\le0.005\,\Msun$ at the published $\Esym$, $\Lsym$ of all three sets. So this difference has no effect on the results.
+\item \textbf{GM $\rho$ coupling}: with $\Esym=32.5$ MeV and $\Lambda_{\omega\rho}=0$ the code gives $C_\rho^2=4.414$ and 4.794 fm$^2$ (published 4.411, 4.791).
+\item \textbf{Round trip}: from the couplings I recompute $\Esym$ and $\Lsym$. At (38.5, 85) MeV: GM1 38.495 / 84.988, GM2 38.496 / 84.996; FSUGarnet, IOPB-I, BigApple within $10^{-4}$ MeV.
+\item \textbf{Pressure two ways} (Euler relation vs.\ $T^{ii}/3$): agree to $6\times10^{-13}$.
+\item \textbf{Thermodynamic consistency} $P=n\,d\varepsilon/dn-\varepsilon$: $3\times10^{-6}$ (below $10^{-7}$ for $n\ge0.1$ fm$^{-3}$).
+\item \textbf{Conservation}: $|Y_n+Y_p-1|\sim10^{-16}$, $|Y_p-Y_e-Y_\mu|\sim10^{-13}$; $\mu_n=\mu_p+\mu_e$ and $\mu_B=\mu_n$ to $2\times10^{-11}$ MeV.
+\item \textbf{Field equations}: residuals $4\times10^{-11}$, $8\times10^{-15}$, $2\times10^{-16}$ for $\sigma$, $\omega$, $\rho$.
+\item \textbf{Isoscalar fit}: GM saturation properties return the Table~II couplings within 0.8\%, and any fitted set returns its target $M^*/M$, $E/A$, $P=0$, $K$ to six digits.
+\end{enumerate}
+
+\subsection{Crust, TOV, NSCool and analysis}
+\begin{enumerate}
+\item Join report for every table, $\mu_B$--$P$ plot, audit of all 864 tables, seam fix in 11 tables.
+\item TOV: GM maximum masses within 0.5\% of the published values; precision and step tests.
+\item All 3456 final cooling runs finished normally; 1\% of the older runs without heating ended abnormally and are not used.
+\item The alternative $^3P_2$ gap mode was first run for only 191 EoS; I re-ran it for all 864 so that no EoS gets an extra chance in the minimum over modes. Output folders were checked so that a new folder does not hide an older one with a similar name.
+\item Magnetised envelope bug in NSCool found and fixed, with a bit-for-bit control test (Report~3).
+\item \textbf{Isoscalar calibration}: exact refit of the $\zeta\neq0$ sets to $(n_0,E/A,K,M^*/M)$ changes $M_{\max}$ by $\le0.001\,\Msun$; with the published $\zeta$ the code reproduces the published $M_{\max}$ of IOPB-I (2.149 $\Msun$), FSUGarnet and BigApple within 0.2\%.
+\item \textbf{Onset masses}: read from the pipeline $M$--$R$ curves and cross-checked with an independent Python TOV (agreement within 0.015 $\Msun$ over 624 EoS).
+\item \texttt{Verification/verify\_papers.py} recomputes every number of the paper 1 draft from the data files (grid counts, best fit, intervals, radius, correlation) and rebuilds the paper; the last log shows all checks passing (e.g.\ best $\chi^2/N=1.3967$, $\chi^2/{\rm dof}=1.5963$, GM2 at 32.5/80, $R_{1.4}=13.20\pm0.39$ km). \texttt{Verification/check\_dois.py} checks the bibliography against Crossref.
+\end{enumerate}
+
+\subsection{Systematic checks}\label{sec:syst}
+\begin{itemize}
+\item \textbf{Grid}: uniform sub-grid (742 EoS) gives $\Lsym=[50,75]$ and $\Esym=[28.0,35.5]$ MeV, same as the full set within half a step.
+\item \textbf{Ages}: adding $\sigma_{\log t}=0.3$ through the slope of the cooling curve lowers the best $\chi^2/N$ from 3.64 to 2.51 in the unheated analysis; even 0.5 leaves it above 2. Age errors matter but do not explain the misfit.
+\item \textbf{$^3P_2$ gap}: the other gap changes the best $\chi^2$ by 0.21 ($0.4\sigma$) and gives the same best EoS.
+\item \textbf{Mechanism}: the five scenarios span $\chi^2/N=1.86$--2.60 in the unextrapolated analysis ($2.35\sigma$), so I do not claim the data choose one mechanism.
+\item \textbf{Heating}: one global parameter, not fitted star by star.
+\item \textbf{Crust}: fixed join density (see Sec.~\ref{sec:crust}).
+\end{itemize}
+
+%=====================================================================
+\section{The new paper arXiv:2609.24940: does it hurt us or help us?}\label{sec:newpaper}
+%=====================================================================
+\textbf{Paper:} G.~Montefusco, P.~Klausner, M.~Antonelli, C.~Ciampi, D.~Gruyer and F.~Gulminelli, \emph{Ruling out nucleonic direct Urca cooling in low-mass neutron stars using nuclear data}, \arxiv{2609.24940}, submitted 21 September 2026 \cite{Montefusco2026}.
+
+\paragraph{What they do.} They build the EoS with a flexible, asymptotically causal nucleonic metamodel and do a Bayesian analysis. The laboratory input is (i) the full correlated posterior of nuclear matter parameters from a large set of nuclear structure data (binding energies and radii of 150 spherical nuclei, giant resonances, dipole polarisability, and the PREX/CREX parity-violating asymmetries), called NSD, and (ii) the INDRA--FAZIA isospin transport data from Ni+Ni collisions at 32 MeV/nucleon, used as a density-weighted likelihood along each sampled $S(n)$ curve, called IF. They add a chiral EFT prior and an astrophysical likelihood (heavy pulsars, GW170817, and NICER for PSR J0030, J0437, J0740 and J0614). The DUrca condition they use is the same momentum condition as mine, in $npe\mu$ matter, and $M_{\rm DU}$ is the lightest stable star in which it is satisfied somewhere in the core.
+
+\paragraph{Their numbers (final ensemble FN+astro).}
+\begin{itemize}
+\item $P(M_{\rm DU}\le1.4\,\Msun)$ drops from 17.5\% (chiral + astro) to 1.2\% (+IF) and 0.26\% (+IF+NSD). About 3.3\% of the weight has no DUrca at all.
+\item $M_{\rm DU}=1.89^{+0.24}_{-0.21}\,\Msun$, $n_{\rm DU}=0.50^{+0.13}_{-0.07}$ fm$^{-3}$, proton fraction at threshold $x_{p,\rm DU}\simeq0.137$.
+\item Nuclear parameters: $\Esym=29.4\pm0.7$ MeV, $\Lsym=29^{+8}_{-8}$ MeV (FN posterior); with the INDRA--FAZIA data alone $\Esym=28.9\pm0.9$ and $\Lsym=41^{+14}_{-15}$ MeV.
+\item Stars: $M_{\rm TOV}=2.26^{+0.13}_{-0.13}\,\Msun$, $R_{1.4}=12.10^{+0.28}_{-0.39}$ km.
+\item Caveats they state: parabolic isospin dependence assumed; hyperonic DUrca not excluded; massive stars remain uncertain.
+\end{itemize}
+
+\paragraph{Comparison with my results.}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & This work (cooling) & arXiv:2609.24940 (FN+astro)\\
+\midrule
+$\Esym$ (MeV) & 28.0--36.0 (68\%) & $29.4\pm0.7$\\
+$\Lsym$ (MeV) & 50--75 (68\%), 35--80 (95\%) & $29^{+8}_{-8}$ (IF alone $41^{+14}_{-15}$)\\
+$M_{\rm DU}$ ($\Msun$) & median 1.77 in the 68\% box; best fit 1.47 & $1.89^{+0.24}_{-0.21}$\\
+$P(M_{\rm DU}\le1.4\,\Msun)$ & 9.9\% of EoS in the 68\% box$^*$ & 0.26\%\\
+$R_{1.4}$ (km) & 12.96--13.63 & $12.10^{+0.28}_{-0.39}$\\
+\bottomrule
+\end{tabular}
+
+\smallskip
+{\footnotesize $^*$ A fraction of grid points, not a posterior probability. The like-for-like number is the cooling-likelihood weighted $P(M_{\rm DU}\le1.4\,\Msun)$, which needs \texttt{Data/cooling\_chi2\_final.csv}. \fillin{compute}}
+\end{center}
+
+\paragraph{My assessment: partly a help, partly a real tension.}
+\begin{enumerate}
+\item \textbf{Where it helps.} The physical picture is the same: DUrca should not work in $\le1.4\,\Msun$ stars but can work in heavier ones. Their median $M_{\rm DU}=1.89\,\Msun$ and my median 1.77 $\Msun$ (best fit 1.47, with the two cold stars assigned $1.8\,\Msun$) agree well. Their $\Esym$ lies inside my 68\% interval. And both results are well below the PREX-2 based values used by Sarkar, Thapa and Sinha \cite{Sarkar2023}, where DUrca opens near $1\,\Msun$. So it supports our message that cooling does not need the very stiff PREX-2 symmetry energy.
+\item \textbf{Where it is a problem.} Their $\Lsym=29\pm8$ MeV is clearly lower than my 50--75 MeV: the 68\% intervals do not overlap and only touch at my 95\% edge (35 MeV). Their radius 12.1 km is also about 1 km smaller than my 13.2 km (my radius is about $1\sigma$ above NICER, theirs is on it). A referee will certainly ask about this.
+\item \textbf{Why the difference may be partly method.} (a) My grid cannot go below $\Lsym=30$ MeV at all, and FSUGarnet, IOPB-I and BigApple cannot go below 50, 45 and 35 MeV (no real $g_\rho$), so the low-$\Lsym$ region they prefer is barely covered by my model family. (b) In RMF models with $\omega$--$\rho$ mixing $\Lsym$ and the high-density $S(n)$ are tied together, while their metamodel lets them move separately. (c) I fix the isoscalar sector to five published sets, while they sample it. (d) The two data sets are different: cooling probes 2--3 $n_0$, their laboratory data mostly $\le n_0$. Their INDRA--FAZIA-only value $41^{+14}_{-15}$ MeV, which is less driven by nuclear structure, does overlap with my interval.
+\item \textbf{Not the same work.} They use no cooling data. So our paper is still new; but we can no longer write that $\Lsym\approx50$--75 MeV is simply ``consistent with nuclear physics'' without discussing this paper.
+\end{enumerate}
+
+\paragraph{What has been added to the paper~1 draft.} The first two points below are now in \texttt{papers/paper1\_cooling.tex} (Sec.~\ref{sec:draft}); the third is still open.
+\begin{itemize}
+\item Citation of the paper, the $M_{\rm DU}$ results and the statement that the DUrca picture agrees. \emph{Done.}
+\item An honest discussion of the $\Lsym$ tension, with the reasons (a)--(d). \emph{Done.}
+\item A test that extends the grid to lower $\Lsym$ where the models allow it (GM1, GM2 below 30 MeV), or adds one parametrisation that reaches $\Lsym\approx20$--30 MeV, to see whether the cooling $\chi^2$ really rises there. \fillin{open}
+\end{itemize}
+
+%=====================================================================
+\section{Changes made to the paper~1 draft}\label{sec:draft}
+%=====================================================================
+The draft \texttt{papers/paper1\_cooling.tex} (MNRAS version) has been corrected as follows. The original is kept in the repository history, so every change can be seen line by line.
+\begin{enumerate}
+\item \textbf{RX J0822$-$4300 (Sec.~``A correction to an adopted surface temperature'').} The two-component fit is now attributed to the Potekhin et al.\ 2020 compilation instead of Zavlin et al.\ 1999, and a sentence gives the spread of acceptable whole-surface fits (0.79--1.34 MK). Two \texttt{\% CHECK} comments mark where the original references must still be added.
+\item \textbf{New subsection ``Direct Urca threshold masses''} with the numbers of Sec.~\ref{sec:mdu} (median 1.77 $\Msun$, 9.9\% at or below 1.4 $\Msun$, best fit 1.47 $\Msun$).
+\item \textbf{New paragraph on Montefusco et al.\ \cite{Montefusco2026}} in the discussion of the $\Lsym$ interval: agreement on $M_{\rm DU}$ and $\Esym$, tension in $\Lsym$, and why part of it comes from the model family.
+\item \textbf{Two new systematics paragraphs:} the isoscalar calibration of the $\zeta\ne0$ sets (Sec.~\ref{sec:tov}, Sec.~\ref{sec:checks}) and the RX~J0822 temperature spread.
+\item \textbf{New bibliography entry} \texttt{Montefusco2026} in \texttt{papers/refs\_additions.bib}.
+\end{enumerate}
+\noindent\textbf{Important:} the header of the MNRAS file says it is generated from the REVTeX source by \texttt{to\_mnras.py}. The same edits must be made in the REVTeX source, or they will be lost the next time the converter runs.
+
+\noindent\textbf{Still to do before submission} (all marked \texttt{\% CHECK} in the draft):
+\begin{itemize}
+\item the original references for the RX~J0822 two-component fit and for the 1.18 MK value (Table~1 of Potekhin et al.\ 2020);
+\item the posterior-weighted $P(M_{\rm DU}\le1.4\,\Msun)$ from \texttt{Data/cooling\_chi2\_final.csv};
+\item confirmation of the published $\zeta$ values of FSUGarnet, IOPB-I and BigApple;
+\item a rerun with $\sigma=0.12$ dex for RX~J0822, to quote its effect.
+\end{itemize}
+
+%=====================================================================
+\begin{thebibliography}{99}
+\small
+\bibitem{Sarkar2023} T.~Sarkar, V.~B.~Thapa and M.~Sinha, Phys.\ Rev.\ C \textbf{108}, 035801 (2023), \doi{10.1103/PhysRevC.108.035801}, \arxiv{2308.16449}.
+\bibitem{ThapaSinha2022} V.~B.~Thapa and M.~Sinha, \emph{Direct URCA process in light of PREX-2}, \arxiv{2203.02272} (cited as this arXiv preprint in Ref.~\cite{Sarkar2023}).
+\bibitem{PREX2} D.~Adhikari et al.\ (PREX Collaboration), Phys.\ Rev.\ Lett.\ \textbf{126}, 172502 (2021), \doi{10.1103/PhysRevLett.126.172502}.
+\bibitem{Reed2021} B.~T.~Reed, F.~J.~Fattoyev, C.~J.~Horowitz and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{126}, 172503 (2021), \doi{10.1103/PhysRevLett.126.172503}.
+\bibitem{LattimerLim2013} J.~M.~Lattimer and Y.~Lim, Astrophys.\ J.\ \textbf{771}, 51 (2013), \doi{10.1088/0004-637X/771/1/51}.
+\bibitem{DanielewiczLee2014} P.~Danielewicz and J.~Lee, Nucl.\ Phys.\ A \textbf{922}, 1 (2014), \doi{10.1016/j.nuclphysa.2013.11.005}.
+\bibitem{Drischler2020} C.~Drischler, R.~J.~Furnstahl, J.~A.~Melendez and D.~R.~Phillips, Phys.\ Rev.\ Lett.\ \textbf{125}, 202702 (2020), \doi{10.1103/PhysRevLett.125.202702}.
+\bibitem{Essick2021} R.~Essick, I.~Tews, P.~Landry and A.~Schwenk, Phys.\ Rev.\ Lett.\ \textbf{127}, 192701 (2021), \doi{10.1103/PhysRevLett.127.192701}.
+\bibitem{RocaMaza2011} X.~Roca-Maza, M.~Centelles, X.~Vi\~nas and M.~Warda, Phys.\ Rev.\ Lett.\ \textbf{106}, 252501 (2011), \doi{10.1103/PhysRevLett.106.252501}.
+\bibitem{LPPH1991} J.~M.~Lattimer, C.~J.~Pethick, M.~Prakash and P.~Haensel, Phys.\ Rev.\ Lett.\ \textbf{66}, 2701 (1991), \doi{10.1103/PhysRevLett.66.2701}.
+\bibitem{FrimanMaxwell1979} B.~L.~Friman and O.~V.~Maxwell, Astrophys.\ J.\ \textbf{232}, 541 (1979), \ads{1979ApJ...232..541F}.
+\bibitem{Yakovlev2001} D.~G.~Yakovlev, A.~D.~Kaminker, O.~Y.~Gnedin and P.~Haensel, Phys.\ Rep.\ \textbf{354}, 1 (2001), \doi{10.1016/S0370-1573(00)00131-9}.
+\bibitem{Yakovlev1999} D.~G.~Yakovlev, K.~P.~Levenfish and Y.~A.~Shibanov, Phys.\ Usp.\ \textbf{42}, 737 (1999), \doi{10.1070/PU1999v042n08ABEH000556}.
+\bibitem{YakovlevPethick2004} D.~G.~Yakovlev and C.~J.~Pethick, Annu.\ Rev.\ Astron.\ Astrophys.\ \textbf{42}, 169 (2004), \doi{10.1146/annurev.astro.42.053102.134013}.
+\bibitem{Page2004} D.~Page, J.~M.~Lattimer, M.~Prakash and A.~W.~Steiner, Astrophys.\ J.\ Suppl.\ \textbf{155}, 623 (2004), \doi{10.1086/424844}.
+\bibitem{Page2009} D.~Page, J.~M.~Lattimer, M.~Prakash and A.~W.~Steiner, Astrophys.\ J.\ \textbf{707}, 1131 (2009), \doi{10.1088/0004-637X/707/2/1131}.
+\bibitem{Walecka1974} J.~D.~Walecka, Ann.\ Phys.\ \textbf{83}, 491 (1974), \doi{10.1016/0003-4916(74)90208-5}.
+\bibitem{BogutaBodmer1977} J.~Boguta and A.~R.~Bodmer, Nucl.\ Phys.\ A \textbf{292}, 413 (1977), \doi{10.1016/0375-9474(77)90626-1}.
+\bibitem{SerotWalecka1986} B.~D.~Serot and J.~D.~Walecka, Adv.\ Nucl.\ Phys.\ \textbf{16}, 1 (1986), \ads{1986AdNuP..16....1S}.
+\bibitem{MullerSerot1996} H.~M\"uller and B.~D.~Serot, Nucl.\ Phys.\ A \textbf{606}, 508 (1996), \doi{10.1016/0375-9474(96)00187-X}.
+\bibitem{HorowitzPiekarewicz2001} C.~J.~Horowitz and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{86}, 5647 (2001), \doi{10.1103/PhysRevLett.86.5647}.
+\bibitem{ToddRutel2005} B.~G.~Todd-Rutel and J.~Piekarewicz, Phys.\ Rev.\ Lett.\ \textbf{95}, 122501 (2005), \doi{10.1103/PhysRevLett.95.122501}.
+\bibitem{Hornick2018} N.~Hornick, L.~Tolos, A.~Zacchi, J.-E.~Christian and J.~Schaffner-Bielich, Phys.\ Rev.\ C \textbf{98}, 065804 (2018), \doi{10.1103/PhysRevC.98.065804}.
+\bibitem{GM1991} N.~K.~Glendenning and S.~A.~Moszkowski, Phys.\ Rev.\ Lett.\ \textbf{67}, 2414 (1991), \doi{10.1103/PhysRevLett.67.2414}.
+\bibitem{FSUGarnet} W.-C.~Chen and J.~Piekarewicz, Phys.\ Lett.\ B \textbf{748}, 284 (2015), \doi{10.1016/j.physletb.2015.07.020}, \arxiv{1412.7870}.
+\bibitem{IOPBI} B.~Kumar, S.~K.~Patra and B.~K.~Agrawal, Phys.\ Rev.\ C \textbf{97}, 045806 (2018), \doi{10.1103/PhysRevC.97.045806}.
+\bibitem{BigApple} F.~J.~Fattoyev, C.~J.~Horowitz, J.~Piekarewicz and B.~Reed, Phys.\ Rev.\ C \textbf{102}, 065805 (2020), \doi{10.1103/PhysRevC.102.065805}.
+\bibitem{NL3} G.~A.~Lalazissis, J.~K\"onig and P.~Ring, Phys.\ Rev.\ C \textbf{55}, 540 (1997), \doi{10.1103/PhysRevC.55.540}.
+\bibitem{Fortin2016} M.~Fortin, C.~Provid\^encia, A.~R.~Raduta, F.~Gulminelli, J.~L.~Zdunik, P.~Haensel and M.~Bejger, Phys.\ Rev.\ C \textbf{94}, 035804 (2016), \doi{10.1103/PhysRevC.94.035804}.
+\bibitem{LattimerPrakash2007} J.~M.~Lattimer and M.~Prakash, Phys.\ Rep.\ \textbf{442}, 109 (2007), \doi{10.1016/j.physrep.2007.02.003}.
+\bibitem{Demorest2010} P.~B.~Demorest, T.~Pennucci, S.~M.~Ransom, M.~S.~E.~Roberts and J.~W.~T.~Hessels, Nature \textbf{467}, 1081 (2010), \doi{10.1038/nature09466}.
+\bibitem{Antoniadis2013} J.~Antoniadis et al., Science \textbf{340}, 1233232 (2013), \doi{10.1126/science.1233232}.
+\bibitem{Fonseca2021} E.~Fonseca et al., Astrophys.\ J.\ Lett.\ \textbf{915}, L12 (2021), \doi{10.3847/2041-8213/ac03b8}.
+\bibitem{HZD1989} P.~Haensel, J.~L.~Zdunik and J.~Dobaczewski, Astron.\ Astrophys.\ \textbf{222}, 353 (1989), \ads{1989A\%26A...222..353H}.
+\bibitem{NegeleVautherin1973} J.~W.~Negele and D.~Vautherin, Nucl.\ Phys.\ A \textbf{207}, 298 (1973), \doi{10.1016/0375-9474(73)90349-7}.
+\bibitem{BPS1971} G.~Baym, C.~Pethick and P.~Sutherland, Astrophys.\ J.\ \textbf{170}, 299 (1971), \doi{10.1086/151216}.
+\bibitem{DouchinHaensel2001} F.~Douchin and P.~Haensel, Astron.\ Astrophys.\ \textbf{380}, 151 (2001), \doi{10.1051/0004-6361:20011402}.
+\bibitem{Tolman1939} R.~C.~Tolman, Phys.\ Rev.\ \textbf{55}, 364 (1939), \doi{10.1103/PhysRev.55.364}.
+\bibitem{OV1939} J.~R.~Oppenheimer and G.~M.~Volkoff, Phys.\ Rev.\ \textbf{55}, 374 (1939), \doi{10.1103/PhysRev.55.374}.
+\bibitem{NSCool} D.~Page, \emph{NSCool: Neutron star cooling code}, Astrophysics Source Code Library, \href{https://ascl.net/1609.009}{ascl:1609.009} (2016).
+\bibitem{SFB2003} A.~Schwenk, B.~Friman and G.~E.~Brown, Nucl.\ Phys.\ A \textbf{713}, 191 (2003), \doi{10.1016/S0375-9474(02)01290-3}.
+\bibitem{Takatsuka1973} T.~Takatsuka, Prog.\ Theor.\ Phys.\ \textbf{50}, 1754 (1973), \doi{10.1143/PTP.50.1754}.
+\bibitem{GPE1983} E.~H.~Gudmundsson, C.~J.~Pethick and R.~I.~Epstein, Astrophys.\ J.\ \textbf{272}, 286 (1983), \doi{10.1086/161292}.
+\bibitem{PCY1997} A.~Y.~Potekhin, G.~Chabrier and D.~G.~Yakovlev, Astron.\ Astrophys.\ \textbf{323}, 415 (1997), \ads{1997A\%26A...323..415P}. (Some code comments call this ``1999''; the correct year is 1997.)
+\bibitem{HernquistApplegate1984} L.~Hernquist and J.~H.~Applegate, Astrophys.\ J.\ \textbf{287}, 244 (1984), \doi{10.1086/162683}.
+\bibitem{Alpar1984} M.~A.~Alpar, P.~W.~Anderson, D.~Pines and J.~Shaham, Astrophys.\ J.\ \textbf{276}, 325 (1984), \ads{1984ApJ...276..325A}.
+\bibitem{ShibazakiLamb1989} N.~Shibazaki and F.~K.~Lamb, Astrophys.\ J.\ \textbf{346}, 808 (1989), \doi{10.1086/168062}.
+\bibitem{GonzalezReisenegger2010} D.~Gonz\'alez and A.~Reisenegger, Astron.\ Astrophys.\ \textbf{522}, A16 (2010), \doi{10.1051/0004-6361/201015084}.
+\bibitem{Potekhin2020} A.~Y.~Potekhin, D.~A.~Zyuzin, D.~G.~Yakovlev, M.~V.~Beznogov and Y.~A.~Shibanov, Mon.\ Not.\ R.\ Astron.\ Soc.\ \textbf{496}, 5052 (2020), \doi{10.1093/mnras/staa1871}, \arxiv{2006.15004}.
+\bibitem{HoHeinke2009} W.~C.~G.~Ho and C.~O.~Heinke, Nature \textbf{462}, 71 (2009), \doi{10.1038/nature08525}.
+\bibitem{Fesen2006} R.~A.~Fesen et al., Astrophys.\ J.\ \textbf{645}, 283 (2006), \doi{10.1086/504254}.
+\bibitem{Klochkov2013} D.~Klochkov, G.~P\"uhlhofer, V.~Suleimanov, S.~Simon, K.~Werner and A.~Santangelo, Astron.\ Astrophys.\ \textbf{556}, A41 (2013), \arxiv{1307.1230}, \ads{2013A\%26A...556A..41K}.
+\bibitem{Zavlin1999} V.~E.~Zavlin, J.~Tr\"umper and G.~G.~Pavlov, Astrophys.\ J.\ \textbf{525}, 959 (1999), \ads{1999ApJ...525..959Z}.
+\bibitem{HuiBecker2006} C.~Y.~Hui and W.~Becker, \emph{X-ray observations of RX J0822$-$4300 and Puppis-A}, Astron.\ Astrophys.\ (2006), \arxiv{astro-ph/0508655}.
+\bibitem{Becker2012} W.~Becker, T.~Prinz, P.~F.~Winkler and R.~Petre, Astrophys.\ J.\ \textbf{755}, 141 (2012), \doi{10.1088/0004-637X/755/2/141}.
+\bibitem{DeLuca2004} A.~De~Luca et al., Astron.\ Astrophys.\ \textbf{418}, 625 (2004), \ads{2004A\%26A...418..625D}.
+\bibitem{Pavlov2001} G.~G.~Pavlov, V.~E.~Zavlin, D.~Sanwal, V.~Burwitz and G.~P.~Garmire, Astrophys.\ J.\ \textbf{552}, L129 (2001), \doi{10.1086/320342}.
+\bibitem{McGowan2004} K.~E.~McGowan et al., Astrophys.\ J.\ \textbf{600}, 343 (2004), \doi{10.1086/379703}.
+\bibitem{Ng2007} C.-Y.~Ng, R.~W.~Romani, W.~F.~Brisken, S.~Chatterjee and M.~Kramer, Astrophys.\ J.\ \textbf{654}, 487 (2007), \doi{10.1086/510576}.
+\bibitem{McGowan2006} K.~E.~McGowan et al., Astrophys.\ J.\ \textbf{639}, 377 (2006), \doi{10.1086/499325}, \arxiv{astro-ph/0508439}.
+\bibitem{DeLuca2005} A.~De~Luca, P.~A.~Caraveo, S.~Mereghetti, M.~Negroni and G.~F.~Bignami, Astrophys.\ J.\ \textbf{623}, 1051 (2005), \doi{10.1086/428568}.
+\bibitem{Ho2007} W.~C.~G.~Ho, D.~L.~Kaplan, P.~Chang, M.~van~Adelsberg and A.~Y.~Potekhin, Mon.\ Not.\ R.\ Astron.\ Soc.\ \textbf{375}, 821 (2007), \doi{10.1111/j.1365-2966.2006.11376.x}.
+\bibitem{Motch2003} C.~Motch, V.~E.~Zavlin and F.~Haberl, Astron.\ Astrophys.\ \textbf{408}, 323 (2003), \doi{10.1051/0004-6361:20030916}.
+\bibitem{Becker2004} W.~Becker et al., Astrophys.\ J.\ \textbf{615}, 908 (2004), \doi{10.1086/424498}, \arxiv{astro-ph/0405180}.
+\bibitem{Durant2012} M.~Durant, O.~Kargaltsev, G.~G.~Pavlov et al., Astrophys.\ J.\ \textbf{746}, 6 (2012), \doi{10.1088/0004-637X/746/1/6}.
+\bibitem{Pavlov2017} G.~G.~Pavlov et al., Astrophys.\ J.\ \textbf{850}, 79 (2017), \doi{10.3847/1538-4357/aa9375}.
+\bibitem{OzelFreire2016} F.~\"Ozel and P.~Freire, Annu.\ Rev.\ Astron.\ Astrophys.\ \textbf{54}, 401 (2016), \doi{10.1146/annurev-astro-081915-023322}.
+\bibitem{PDG2024} S.~Navas et al.\ (Particle Data Group), Phys.\ Rev.\ D \textbf{110}, 030001 (2024), \doi{10.1103/PhysRevD.110.030001}.
+\bibitem{Miller2021} M.~C.~Miller et al., Astrophys.\ J.\ Lett.\ \textbf{918}, L28 (2021), \doi{10.3847/2041-8213/ac089b}.
+\bibitem{Riley2021} T.~E.~Riley et al., Astrophys.\ J.\ Lett.\ \textbf{918}, L27 (2021), \doi{10.3847/2041-8213/ac0a81}.
+\bibitem{Das2021} H.~C.~Das, A.~Kumar, B.~Kumar, S.~K.~Biswal and S.~K.~Patra, Int.\ J.\ Mod.\ Phys.\ E \textbf{30}, 2150088 (2021), \doi{10.1142/S0218301321500889}, \arxiv{2009.10690}.
+\bibitem{Montefusco2026} G.~Montefusco, P.~Klausner, M.~Antonelli, C.~Ciampi, D.~Gruyer and F.~Gulminelli, \emph{Ruling out nucleonic direct Urca cooling in low-mass neutron stars using nuclear data}, \arxiv{2609.24940} (2026).
+\end{thebibliography}
+
+\end{document}

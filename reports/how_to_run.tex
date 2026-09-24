@@ -1,0 +1,331 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\f}[1]{\texttt{#1}}
+\definecolor{cmdbg}{RGB}{242,242,246}
+\definecolor{okc}{RGB}{0,110,40}
+\definecolor{warnc}{RGB}{170,40,0}
+\newcommand{\ok}[1]{\par\noindent\textcolor{okc}{\textbf{Check:}} #1\par}
+\newcommand{\warn}[1]{\par\noindent\textcolor{warnc}{\textbf{Careful:}} #1\par}
+\DefineVerbatimEnvironment{cmd}{Verbatim}{frame=single,rulecolor=\color{gray},fontsize=\small,xleftmargin=2mm,xrightmargin=2mm}
+
+\title{How to run my research again by myself\\[2mm]\large Step-by-step guide for papers 1, 2 and 3}
+\author{Nisha Singh}
+\date{24 September 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\noindent This is a practical guide. It lists, in order, every command needed to rebuild all the results of Reports~1--3 on my MacBook, starting from nothing but the code. After each step there is a \textcolor{okc}{\textbf{Check}} with the number I should see, so I know at once if something went wrong. The physics behind each step is in Reports~1--3 (the files \f{NEUTRON\_STARS\_DOC-2.pdf} and \f{-3.pdf} are Reports~2 and~3; their content is the same as \f{paper2\_neutron\_skin.pdf} and \f{paper3\_magnetized\_envelope.pdf}).
+
+\tableofcontents
+
+%=====================================================================
+\section{The whole chain in one picture}
+
+\begin{center}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{clll}
+\toprule
+Step & What & Program & Output\\
+\midrule
+1 & EoS of the core, for every $(\Esym,\Lsym)$ & \f{rmf\_lambda\_and\_eos.py} & \f{EOS\_RMF/eos<TAG>.dat}\\
+2 & Crust join + NSCool format & \f{automationandformatting-2.py}, \f{fix\_seam\_eos.py} & \f{NSCool/EOS/<TAG>\_CAT.dat}\\
+3 & TOV: $M$--$R$ curve and star profiles & \f{tovprofile} (Fortran) & \f{MRcurve\_<TAG>\_CAT.dat}, \f{TOVprofile\_*}\\
+4 & Keep EoS with $M_{\max}\ge2$ and causal & \f{export\_cooling\_chi2.py} & \f{Data/surviving\_tags.txt} (864)\\
+5 & Cooling curves & \f{run\_cooling\_prl.py} + NSCool & \f{Data/Cooling\_Outputs/...}\\
+6 & $\chi^2$ against 16 stars & \f{export\_final\_chi2.py} & \f{Data/cooling\_chi2\_final.csv}\\
+7 & Intervals, $M_{\rm DU}$, figures & \f{physical\_quantities.py}, \f{combine\_cooling\_lab.py}, ... & numbers for paper 1\\
+8 & Paper 2: skins of $^{208}$Pb, $^{48}$Ca & \f{finite\_nucleus\_rmf.py}, \f{rerun\_skin\_grid\_fixed.py} & \f{skin\_grid\_*.csv}\\
+9 & Paper 3: magnetised envelopes & \f{run\_cooling\_prl.py} (magB modes) & \f{Data/cooling\_chi2\_magnetized.csv}\\
+10 & Verification and LaTeX & \f{Verification/*.py}, \f{pdflatex} & PDFs\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+
+\noindent A \emph{tag} is the name of one EoS, for example \f{GM2\_J32p5\_L80p0} means model GM2 with $\Esym=32.5$ and $\Lsym=80.0$ MeV (the dot is written \f{p}).
+
+%=====================================================================
+\section{Step 0: set up the Mac (once)}
+
+\subsection{Programs}
+\begin{cmd}
+xcode-select --install                 # compilers, git, make
+brew install gcc            # gives gfortran (needs Homebrew, brew.sh)
+python3 -m pip install numpy scipy matplotlib
+\end{cmd}
+For LaTeX install MacTeX (\url{https://tug.org/mactex/}).
+\ok{\f{gfortran --version} and \f{python3 -c "import numpy, scipy, matplotlib"} both work without error.}
+
+\subsection{Folder layout}
+All paths below are relative to my main folder \f{\textasciitilde/phdfolder}. The scripts expect this layout (they find each other through it):
+\begin{cmd}
+phdfolder/
+  Source_Code/
+    run_cooling_prl.py   make_workers.py        <- cooling drivers
+    Python/              rmf_lambda_and_eos.py, automationandformatting-2.py,
+                         fix_seam_eos.py, audit_eos_tables.py,
+                         finite_nucleus_rmf.py, skin_grid_*.csv, ...
+  NSCool/                EOS/  TOV/  I_Files/  Code/  Model_1/  (NSCool itself)
+  Data/                  Cooling_Outputs/, cooling_chi2_final.csv, ...
+  Plotting_Scripts/      export_final_chi2.py, joint_likelihood.py, ...
+  Verification/          verify_papers.py, validate_solver.py, ...
+  Paper/PRC_papers/      the paper .tex files and figs/
+\end{cmd}
+\warn{\f{run\_cooling\_prl.py} and \f{make\_workers.py} look for \f{NSCool/} one folder above their own folder, while the scripts in \f{Source\_Code/Python/} look two folders up. If a script says it cannot find \f{NSCool/EOS}, the script is in the wrong folder. Check with \f{ls Source\_Code Source\_Code/Python}.}
+
+\subsection{Get the corrected files from GitHub}
+All the corrections of the last weeks are on GitHub, branch \f{claude/focused-fermi-15kqdj}:
+\begin{cmd}
+cd ~
+git clone -b claude/focused-fermi-15kqdj \
+   https://github.com/nishasinghkuntal/phdfolder.git phd_updates
+\end{cmd}
+Then copy into the working tree (first make a backup of the old versions):
+\begin{cmd}
+cd ~/phdfolder
+P=Source_Code/Python
+mkdir -p backup_old && cp $P/finite_nucleus_rmf.py $P/skin_grid_*.csv backup_old/
+U=~/phd_updates
+cp $U/finite_nucleus_rmf.py $U/rerun_skin_grid_fixed.py $U/durca_threshold_mass.py \
+   $U/physical_quantities.py $U/combine_cooling_lab.py  $P/
+mkdir -p $P/reports/data && cp $U/reports/data/*.dat $P/reports/data/
+cp $U/skin_grid_fixed_*.csv $U/skin_validation_fixed.csv  $P/
+cp $U/papers/paper1_cooling.tex $U/papers/paper2_skins.tex  Paper/PRC_papers/
+cp -r $U/reports  ~/phdfolder/Reports
+\end{cmd}
+Later, to pick up new changes: \f{cd \textasciitilde/phd\_updates \&\& git pull} and copy again.
+
+\subsection{NSCool}
+Compile NSCool as before (in \f{NSCool/Code}, with its own \f{Makefile}). My copy carries the \f{bf\_r} patch (the magnetic field was never passed to the envelope; see Report~3). After compiling:
+\begin{cmd}
+python3 Verification/verify_bfield_patch.py
+\end{cmd}
+\ok{it ends with ``Both assertions hold: the bug is characterised and the patch is ...''. If it prints FAILED, the patch is missing and paper 3 results cannot be reproduced.}
+
+%=====================================================================
+\section{Step 1: the equations of state}
+\begin{cmd}
+cd ~/phdfolder/Source_Code/Python
+python3 rmf_lambda_and_eos.py           # full grid + accuracy checks
+python3 rmf_lambda_and_eos.py --checks  # only the accuracy checks (fast)
+\end{cmd}
+What it does: for each model (GM1, GM2, FSUGarnet, IOPB-I, BigApple) it keeps the published isoscalar couplings, and for every grid point ($\Esym=25$--43 MeV in steps of 1.5, $\Lsym=30$--130 MeV in steps of 5, plus the extra GM points) it solves for $g_\rho$ and $\Lambda_{\omega\rho}$, then solves $\beta$-equilibrium from 0.03 to about 1.5 fm$^{-3}$. It writes \f{EOS\_RMF/eos<TAG>.dat} and \f{couplings\_table.dat}. Points where $\Lambda_{\omega\rho}$ or $C_\rho^2$ come out unphysical are skipped and printed.
+
+\ok{GM1 at $\Esym=32.5$, $\Lambda_{\omega\rho}=0$: $C_\rho^2=4.414$ fm$^2$ (published 4.411); GM2/GM3: 4.794 (4.791). NL3$\omega\rho$ test: $\Lambda_{\omega\rho}=0.0297$.}
+\ok{\f{grep -c . couplings\_table.dat} gives about 1478 lines (all tables before cuts).}
+\warn{The code must pass the \emph{Landau} effective mass $\sqrt{k_F^2+M^{*2}}$ to NSCool, not the Dirac mass. Check once: \f{grep -n "MASS\_FOR\_NSCOOL" rmf\_lambda\_and\_eos.py} must show \f{"landau"}.}
+
+%=====================================================================
+\section{Step 2: crust and NSCool format}
+\begin{cmd}
+python3 automationandformatting-2.py EOS_RMF/eos*.dat
+python3 fix_seam_eos.py            # dry run: lists tables with a bad seam
+python3 fix_seam_eos.py --apply    # repairs them
+python3 audit_eos_tables.py        # checks every *_CAT.dat
+\end{cmd}
+The core is joined to the HZD-NV crust of NSCool at $n=0.0789$ fm$^{-3}$ ($Z=32$, $A=982$), where the pressure matches within 5\%. Output: \f{NSCool/EOS/<TAG>\_CAT.dat}.
+
+\ok{\f{fix\_seam\_eos.py} lists 11 tables before \f{--apply}, and 0 after. \f{audit\_eos\_tables.py} reports no pressure inversions and no $c_s>c$ in the crust.}
+\warn{Do not write your own parser for the \f{\_CAT.dat} files. They contain several blocks with different columns; a simple ``read all numbers'' parser invents fake pressure inversions. This happened twice. Use \f{audit\_eos\_tables.py} or \f{Verification/verify\_eos\_thermo.py}.}
+
+%=====================================================================
+\section{Step 3: TOV}
+\begin{cmd}
+cd ~/phdfolder
+gfortran -O2 -o tovprofile Source_Code/Python/TOVprofile2_automated.f90
+./tovprofile NSCool/EOS/GM1_*_CAT.dat          # one model at a time
+./tovprofile NSCool/EOS/GM2_*_CAT.dat
+./tovprofile NSCool/EOS/FSUGarnet_*_CAT.dat
+./tovprofile NSCool/EOS/IOPB-I_*_CAT.dat
+./tovprofile NSCool/EOS/BigApple_*_CAT.dat
+\end{cmd}
+(Use the path where \f{TOVprofile2\_automated.f90} actually is.) The program must be started from \f{phdfolder} (it looks for \f{NSCool/EOS/APR\_EOS\_Cat.dat}). It accepts at most 1024 files per call, so run it model by model. For a quick $M$--$R$ curve only, add \f{--curve-only}.
+
+Output: \f{NSCool/EOS/MRcurve\_<TAG>\_CAT.dat} (columns $M$, $R$, $\rho_c$) and the star profiles \f{NSCool/TOV/Profile/TOVprofile\_<TAG>\_targetM10.dat}, \f{...M14}, \f{M18}, \f{M20} that NSCool needs.
+
+\ok{with $\Lambda_{\omega\rho}=0$, $\Esym=32.5$: $M_{\max}$(GM1) $=2.360$, GM2 $=2.075$, GM3 $=2.015\,\Msun$ (published 2.35--2.36, 2.08, 2.02). At the published $(\Esym,\Lsym)$: FSUGarnet 2.073, IOPB-I 2.120, BigApple $2.593\,\Msun$ (Report~1, Table~2).}
+\ok{independent check with the Python TOV: \f{python3 Source\_Code/Python/durca\_threshold\_mass.py} prints GM1 $M_{\max}=2.361$.}
+
+%=====================================================================
+\section{Step 4: which EoS survive}
+The cut is $M_{\max}\ge2.0\,\Msun$, causal ($c_s<c$ everywhere in the stable star), $\Esym\in[25,43]$, $\Lsym\in[30,130]$. The plotting scripts already contain it; I just write the list of tags to a file:
+\begin{cmd}
+cd ~/phdfolder/Plotting_Scripts
+python3 -c "import export_cooling_chi2 as X; e=X.build_eos_data(); \
+t=sorted(k for k,v in e.items() if v['pass_all']); \
+open('../Data/surviving_tags.txt','w').write('\n'.join(t)+'\n'); print(len(t))"
+\end{cmd}
+\ok{it prints \textbf{864}. By model: GM1, GM2 with the extra GM points, and FSUGarnet, IOPB-I, BigApple on the regular grid.}
+
+%=====================================================================
+\section{Step 5: cooling with NSCool}
+\subsection{Parallel workers}
+NSCool writes its temporary files into \f{Model\_1/} with fixed names, so two runs in the same folder overwrite each other silently (this corrupted a batch once). Always use separate workers:
+\begin{cmd}
+cd ~/phdfolder
+python3 Source_Code/make_workers.py 4       # makes NSCool_w1 ... NSCool_w4
+# split the 864 tags into 4 lists of 216:
+awk '{print > ("Data/tags_part_0" (NR%4))}' Data/surviving_tags.txt
+\end{cmd}
+
+\subsection{The runs for paper 1}
+Paper 1 uses two modes: \f{durca\_sf\_vc} (direct Urca + modified Urca + superfluidity + vortex-creep heating, iron envelope) and \f{durca\_sf\_vc\_carbon} (same, carbon envelope with $\eta=6\times10^{-10}$, used only for Cas~A and XMMU~J1732), at four masses. Test first:
+\begin{cmd}
+python3 Source_Code/run_cooling_prl.py --modes durca_sf_vc --masses 1.4 \
+        --max 5 --workdir NSCool_w1
+\end{cmd}
+\ok{5 runs finish with status \f{ok}; \nolinkurl{Data/Cooling_Outputs/durca_sf_vc_M14/<TAG>/Teff_<TAG>.dat} exists. Note the time per run: the full job is 864 EoS $\times$ 4 masses $\times$ 2 modes = 6912 runs.}
+
+Then start the four workers, each in its own Terminal window (or with \f{nohup ... \&}):
+\begin{cmd}
+for i in 0 1 2 3; do
+  nohup python3 Source_Code/run_cooling_prl.py \
+      --modes durca_sf_vc durca_sf_vc_carbon --masses 1.0 1.4 1.8 2.0 \
+      --tagfile Data/tags_part_0$i --workdir NSCool_w$((i+1)) \
+      > Data/cool_w$((i+1)).log 2>&1 &
+done
+tail -f Data/cool_w1.log          # watch progress (Ctrl-C only stops tail)
+\end{cmd}
+Runs that already exist are skipped (\f{skip}), so if the Mac sleeps or crashes, start the same command again and it continues.
+\warn{Keep the Mac awake: \f{caffeinate -i} in another window. A run that takes more than 300~s is killed and marked \f{fail}; a few failures at 2.0~$\Msun$ for soft EoS are normal, many are not.}
+\ok{at the end each log shows \f{fail = 0} (or a handful) and \f{no\_profile = 0}. \f{no\_profile} means the TOV profile for that mass is missing: go back to Step~3.}
+
+%=====================================================================
+\section{Step 6: $\chi^2$ against the observations}
+\begin{cmd}
+cd ~/phdfolder/Plotting_Scripts
+python3 export_final_chi2.py
+\end{cmd}
+It compares every EoS with the 16 stars (list \f{OBS} in \f{full\_multimass\_5mode.py}), takes for each star the best of the four masses with a Gaussian mass prior $1.4\pm0.3\,\Msun$, does not extrapolate curves beyond their end, and writes \f{Data/cooling\_chi2\_final.csv}.
+
+\ok{\f{EoS scored: 864}; best fit GM2, $J=32.5$, $L=80$; $\chi^2/N=1.397$, $\chi^2/{\rm dof}=1.596$.}
+\warn{RX~J0822$-$4300 must be $\log T_{\rm eff}^\infty=6.072$ (whole surface), not the hot-spot value. Check: \f{grep -n "J0822" full\_multimass\_5mode.py}.}
+
+%=====================================================================
+\section{Step 7: intervals, $M_{\rm DU}$ and figures (paper 1)}
+\subsection{The $\Esym$--$\Lsym$ intervals}
+\begin{cmd}
+python3 joint_likelihood.py      # also gives the paper-2 joint numbers (Step 8)
+python3 make_final_figures.py    # figures into Paper/PRC_papers/figs/
+\end{cmd}
+\ok{$\Lsym=50$--75 MeV (68\%), 35--80 (95\%); $\Esym=28$--36 (68\%), 25--40 (95\%); $R_{1.4}=12.96$--$13.63$ km.}
+
+\subsection{Direct Urca threshold mass and the heavy-ion comparison}
+\begin{cmd}
+cd ~/phdfolder/Source_Code/Python
+python3 physical_quantities.py --tagfile ../../Data/surviving_tags.txt   # ~10 min
+python3 combine_cooling_lab.py ../../Data/cooling_chi2_final.csv
+\end{cmd}
+The first writes \f{reports/data/eos\_physical\_quantities.dat} ($K_{\rm sym}$, $S(2n_0)$, $x_p(2n_0)$, $n_{\rm DU}$, $M_{\rm DU}$, $M_{\max}$, $R_{1.4}$ for each EoS). The second gives 68/95\% intervals of these quantities for cooling alone, cooling + INDRA-FAZIA (Montefusco et al., arXiv:2609.24940), and INDRA-FAZIA alone, plus $P(M_{\rm DU}\le1.4\,\Msun)$.
+
+\ok{the file has 864 data lines. Examples: GM2 $J=32.5$, $L=80$ gives $M_{\rm DU}\approx1.47\,\Msun$. Inside the 68\% box the median $M_{\rm DU}$ is about 1.77 $\Msun$. Proton fraction at threshold $x_{p,\rm DU}\approx0.137$.}
+\warn{these two numbers have not yet been computed with the \emph{final} \f{cooling\_chi2\_final.csv} (I only had an older file). After running this, put $P(M_{\rm DU}\le1.4)$ and the combined interval into paper 1, Sec.~``Direct Urca threshold masses''.}
+
+%=====================================================================
+\section{Step 8: neutron skins (paper 2)}
+\begin{cmd}
+cd ~/phdfolder/Source_Code/Python
+python3 finite_nucleus_rmf.py BigApple 31.32 39.80        # one test nucleus run
+python3 ../../Verification/validate_solver.py             # published-point check
+python3 rerun_skin_grid_fixed.py                          # whole skin grid, 4 cores
+\end{cmd}
+The grid run takes several hours (1--4 min per $^{208}$Pb point). It resumes where it stopped if interrupted. It writes \f{skin\_grid\_fixed\_Pb208.csv}, \f{skin\_grid\_fixed\_Ca48.csv} and \f{skin\_validation\_fixed.csv}.
+
+\ok{\f{skin\_validation\_fixed.csv}: $\Delta r_{np}$(Pb, Ca) = FSUGarnet 0.1636, 0.1676; IOPB-I 0.2212, 0.2010; BigApple 0.1494, 0.1683 fm. Benchmarks inside \f{finite\_nucleus\_rmf.py}: NL3 Pb 0.277 fm (published 0.280), FSUGold 0.207 (0.207). All 74 grid points per nucleus converged.}
+
+Then make the fixed grid the one the analysis reads, and run the likelihood:
+\begin{cmd}
+cp skin_grid_fixed_Pb208.csv skin_grid_Pb208.csv
+cp skin_grid_fixed_Ca48.csv  skin_grid_Ca48.csv
+cd ../../Plotting_Scripts && python3 joint_likelihood.py
+\end{cmd}
+\ok{PREX-2 alone: $\Lsym=50$--95, $\Esym=35.5$--43 MeV; CREX alone: $\Lsym=50$--70, $\Esym=26.5$--32.5 MeV (68\%). Joint best fit FSUGarnet $\Esym=31$, $\Lsym=55$ with $\Delta r_{np}\approx0.174$ (Pb), 0.173 fm (Ca), $\chi^2=4.46$.}
+\warn{GM1 and GM2 are never used for skins (no meson masses published). The binding energies come out 0.09--0.24 MeV/A too small; this is an open issue and does not change the skins.}
+
+%=====================================================================
+\section{Step 9: magnetised envelopes (paper 3)}
+Same as Step~5 with the field modes (iron envelope with $B=10^{11}$--$10^{14}$ G, and \f{magB0} as control that must equal \f{durca\_sf\_vc}):
+\begin{cmd}
+for i in 0 1 2 3; do
+  nohup python3 Source_Code/run_cooling_prl.py \
+    --modes durca_sf_vc_magB0 durca_sf_vc_magB11 durca_sf_vc_magB12 \
+            durca_sf_vc_magB13 durca_sf_vc_magB14 \
+    --masses 1.0 1.4 1.8 2.0 --tagfile Data/tags_part_0$i \
+    --workdir NSCool_w$((i+1)) > Data/mag_w$((i+1)).log 2>&1 &
+done
+\end{cmd}
+This is 5 modes $\times$ 3456 = 17280 runs, so it is the longest step. Then:
+\begin{cmd}
+cd Plotting_Scripts
+python3 export_magnetized_chi2.py      # writes Data/cooling_chi2_magnetized.csv
+python3 make_paper3_figures.py
+python3 ../Verification/verify_paper3.py
+\end{cmd}
+\ok{\f{magB0} curves are identical to \f{durca\_sf\_vc} (this tests the \f{bf\_r} patch in a second way). The numbers to compare are in Report~3.}
+
+%=====================================================================
+\section{Step 10: verification and papers}
+\begin{cmd}
+cd ~/phdfolder
+python3 Verification/verify_eos_thermo.py    # thermodynamics of all 864 tables
+python3 Verification/verify_papers.py        # numbers in papers vs data files
+python3 Verification/verify_paper3.py
+python3 Verification/verify_documents.py     # no retired numbers in other documents
+python3 Verification/check_dois.py           # needs internet (Crossref)
+\end{cmd}
+All must end without FAIL. If \f{verify\_papers.py} fails after a rerun, the new number is probably right and the paper text is old: update the paper, not the check.
+
+\paragraph{Compiling the papers.}
+\begin{cmd}
+cd Paper/PRC_papers
+pdflatex paper1_cooling && bibtex paper1_cooling
+pdflatex paper1_cooling && pdflatex paper1_cooling   # same for paper2, paper3
+python3 ../../Plotting_Scripts/to_mnras.py       # regenerates the MNRAS versions
+python3 ../../Verification/verify_mnras.py
+\end{cmd}
+\warn{The MNRAS files are generated. Never edit them by hand: edit the REVTeX file and run \f{to\_mnras.py} again.}
+If LaTeX stops with ``no legal \textbackslash end found'': \f{python3 Reports/check\_tex.py paper1\_cooling.tex} shows the missing \f{\textbackslash end\{document\}}, unclosed environment or unbalanced brace.
+
+%=====================================================================
+\section{When something goes wrong}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{p{0.38\linewidth}p{0.58\linewidth}}
+\toprule
+Symptom & What to do\\
+\midrule
+Cooling curves of two EoS look identical, or change between runs & Two jobs used the same NSCool folder. Delete that batch, always use \f{--workdir NSCool\_wN}.\\
+\f{no\_profile} in the cooling log & TOV profile for that mass missing: rerun Step~3 for that model.\\
+Many \f{fail} (timeout) & Check the \f{\_CAT.dat} with \f{audit\_eos\_tables.py}; seam problems make NSCool slow. Run \f{fix\_seam\_eos.py --apply}.\\
+Number of surviving EoS $\neq864$ & A model's MR curves are missing or old. Compare \f{ls NSCool/EOS/MRcurve\_*|wc -l} before and after Step 3.\\
+$\chi^2$ changed a lot & Check RX~J0822 value (6.072), the mass prior 0.3, and that both modes finished for all masses.\\
+Skin run stops or is slow & It resumes; just start it again. Check that 4 cores are free.\\
+Script cannot find \f{NSCool/EOS} & Script is in the wrong folder (Sec.~2.2), or start the Fortran program from \f{phdfolder}.\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+%=====================================================================
+\section{Things still open before submission}
+\begin{enumerate}[leftmargin=*]
+\item Run Step~7b with the final \f{cooling\_chi2\_final.csv} and Step~8 \f{joint\_likelihood.py} with the fixed skin grid, then fill the numbers marked \f{\% CHECK} in \f{paper1\_cooling.tex} and \f{paper2\_skins.tex}.
+\item Find the original references for RX~J0822$-$4300 (Potekhin et al.\ 2020, Table~1), and optionally rerun with $\sigma=0.12$ for this star.
+\item Confirm the published $\zeta$ values of FSUGarnet, IOPB-I, BigApple; decide whether to rerun the scan with them (effect on $M_{\max}\le0.03\,\Msun$).
+\item Binding-energy underbinding in the skin code (paper 2).
+\item Ask D.~Page about the \f{bf\_r} bug in the public NSCool (paper 3).
+\end{enumerate}
+
+\end{document}

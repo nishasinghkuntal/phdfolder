@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\fillin}[1]{\textcolor{red}{[#1]}}
+\newcommand{\Esym}{E_{\rm sym}}
+\newcommand{\Lsym}{L_{\rm sym}}
+\newcommand{\Msun}{M_\odot}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{doi:#1}}
+\newcommand{\arxiv}[1]{\href{https://arxiv.org/abs/#1}{arXiv:#1}}
+
+\title{Note: is arXiv:2609.24940 correct, how does it compare with my cooling result,\\ and which effective mass do the cooling calculations use?}
+\author{Nisha Singh\\ Shiv Nadar Institution of Eminence}
+\date{24 September 2026}
+
+\begin{document}
+\sloppy
+\maketitle
+
+\noindent\textbf{Summary.}
+\begin{enumerate}
+\item I checked the numbers of Montefusco et al.\ \cite{Montefusco2026} against each other and against my own codes. I found no sign of a computational error. The quantity that both calculations should share, the proton fraction at the direct Urca threshold, is $0.1371$ in their paper and $0.1370$ in my equations of state.
+\item The two works differ in the inputs, not in the calculation. They get $\Lsym=29\pm8$ MeV and a central proton fraction of a $1.4\,\Msun$ star $x_{p,c}=0.072\pm0.024$. I get $\Lsym=50$--75 MeV and $x_{p,c}\approx0.117$ (0.099--0.131). Within my own models, their region ($\Lsym\approx30$ MeV, only reachable with GM1 and GM2) reproduces their $x_{p,c}$, and it fits the cooling data worse by about $2\sigma$.
+\item Neither result can be called ``the correct one''. Theirs uses more laboratory data and a more flexible EoS, and is strongest at and below saturation density. Mine uses thermal data that probe 2--3 times saturation, but only five RMF parametrisations. Their $\Lsym$ is on the low side of other recent determinations, mine is in the middle.
+\item \textbf{Effective mass.} My pipeline gives NSCool the \emph{Landau} mass $\sqrt{k_F^2+M^{*2}}$, which is the physically right choice for NSCool's Fermi-liquid formulas and is supported by a recent dedicated study \cite{SugiyamaDohi2026}. Sarkar, Thapa and Sinha \cite{Sarkar2023} do not say which mass they gave NSCool. Their DUrca \emph{thresholds} do not depend on it, but their cooling \emph{rates} do: at their GM1 point the Dirac mass would make the DUrca emissivity 1.4--2.4 times too small. Montefusco et al.\ compute no cooling, so the question does not arise for them.
+\end{enumerate}
+
+%=====================================================================
+\section{What arXiv:2609.24940 does}
+%=====================================================================
+Montefusco, Klausner, Antonelli, Ciampi, Gruyer and Gulminelli \cite{Montefusco2026} use an asymptotically causal nucleonic metamodel for the EoS. They sample it in a Bayesian way with three laboratory and theoretical inputs:
+\begin{itemize}
+\item \textbf{NSD}: the full correlated posterior of nuclear matter parameters from a large set of nuclear structure data (binding energies and radii of spherical nuclei, giant resonances, dipole polarisabilities, parity-violating asymmetries of $^{48}$Ca and $^{208}$Pb), obtained with a Skyrme-type functional and an emulator;
+\item \textbf{IF}: the INDRA--FAZIA isospin-diffusion data (Ni+Ni at 32 MeV/nucleon), used as a density-weighted likelihood along each sampled $S(n)$ curve;
+\item \textbf{$\chi$}: a chiral effective field theory prior on neutron matter.
+\end{itemize}
+They then add an astrophysical likelihood (PSR J0348+0432 and J0740+6620 masses, GW170817, and NICER radii of J0030+0451, J0437$-$4715, J0740+6620 and J0614$-$3329). For each EoS they find the lightest stable star in which $x_n^{1/3}\le x_p^{1/3}+x_e^{1/3}$ somewhere in the core. This is the same momentum condition that I use.
+
+%=====================================================================
+\section{Are their numbers consistent with each other?}
+%=====================================================================
+I checked the numbers in their Table~I and Appendix D against each other:
+\begin{enumerate}
+\item \textbf{Low-mass DUrca probability.} In the final ensemble $x_{p,c}(1.4\,\Msun)=0.072^{+0.023}_{-0.024}$ while the threshold is $x_{p,\rm DU}=0.1371$. Reaching the threshold needs a $(0.137-0.072)/0.023\approx2.8\sigma$ upward fluctuation, about 0.3\% one-sided, which matches their quoted $P(M_{\rm DU}\le1.4\,\Msun)=0.26\%$.
+\item \textbf{Same check without laboratory data.} For $\chi$+astro, $M_{\rm DU}=1.91^{+0.38}_{-0.55}\,\Msun$, whose 16th percentile is $1.36\,\Msun$, so about 17\% of the weight is below $1.4\,\Msun$, matching their 17.5\%.
+\item \textbf{Densities.} The threshold density $n_{\rm DU}=0.50^{+0.13}_{-0.07}$ fm$^{-3}$ is above the central density of a $1.4\,\Msun$ star, $n_c=0.41^{+0.05}_{-0.03}$ fm$^{-3}$, as it must be if DUrca is closed at $1.4\,\Msun$.
+\item \textbf{Posterior widths.} The diagonal of their FN covariance matrix gives $\sigma(\Lsym)=\sqrt{63.4}=7.96$ MeV and $\sigma(\Esym)=\sqrt{0.473}=0.69$ MeV, matching the quoted $\Lsym=29.0^{+7.9}_{-8.1}$ and $\Esym=29.4\pm0.7$ MeV. The $\Esym$--$\Lsym$ correlation is $3.39/(0.69\times7.96)\approx0.62$.
+\item \textbf{Threshold proton fraction.} Their $x_{p,\rm DU}\simeq0.137$ lies between $1/9$ ($npe$) and 0.148 (ultrarelativistic muons), as it should. My own EoS give exactly the same value (Sec.~\ref{sec:cmp}), with a completely different model and code.
+\end{enumerate}
+\textbf{Conclusion:} their paper is internally consistent, and I see no calculational mistake.
+
+%=====================================================================
+\section{Where their result depends on assumptions}
+%=====================================================================
+These are points to keep in mind when comparing. Most are stated by the authors themselves.
+\begin{itemize}
+\item \textbf{Parabolic isospin dependence.} The composition of very asymmetric matter is extrapolated from the symmetry energy near symmetric matter; they state their DUrca result is conditional on this.
+\item \textbf{One transport model.} The INDRA--FAZIA constraint comes from one transport code (BUU@VECC-McGill) with a small set of EoS; the transport-model uncertainty is not propagated. They state this is ``beyond the scope''.
+\item \textbf{Two different functionals combined.} The NSD posterior comes from a Skyrme functional, the IF analysis from a metamodel with a gradient term, and the final EoS from a third (asymptotically causal) metamodel. They note that compatibility of the two is ``not obvious'' and check it a posteriori (Fig.~2).
+\item \textbf{PREX and CREX inside NSD.} The NSD input includes the parity-violating asymmetries of both $^{48}$Ca and $^{208}$Pb, which are in tension with each other in mean field models (my Report~2 finds the same). How this tension is resolved inside the Skyrme posterior affects the preferred $\Lsym$.
+\item \textbf{The radius comes mainly from astrophysics.} Their $R_{1.4}=12.22$ km is already there with $\chi$+astro alone, before any laboratory data (12.10 km after). It is driven by the NICER data they include, in particular the small radii of J0437$-$4715 and J0614$-$3329. My cooling fit uses no radius data at all, so the radius difference between our papers ($\approx1$ km) is mostly a difference of \emph{inputs}.
+\item \textbf{Their $\Lsym$ is low compared with other work.} $\Lsym=29\pm8$ MeV is below the chiral EFT result of Drischler et al.\ ($59.8\pm4.1$ MeV \cite{Drischler2020}), the astrophysical inference of Essick et al.\ ($58\pm19$ MeV \cite{Essick2021}), the Lattimer--Lim range (40.5--61.9 MeV \cite{LattimerLim2013}), and even their own INDRA--FAZIA-only value ($41^{+14}_{-15}$ MeV). The low value comes mainly from the nuclear structure posterior.
+\end{itemize}
+
+%=====================================================================
+\section{Direct comparison with my results}\label{sec:cmp}
+%=====================================================================
+I computed the same stellar quantities with my own EoS code for the 176 EoS in my 68\% box ($\Lsym=50$--75, $\Esym=28$--35.5 MeV, $M_{\max}\ge2\,\Msun$). The ranges below are 16th--84th percentiles over these EoS, not posterior intervals.
+
+\begin{table}[h]
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lcc}
+\toprule
+Quantity & This work (cooling, RMF) & arXiv:2609.24940 (FN+astro)\\
+\midrule
+$\Esym$ (MeV) & 28--36 (68\%) & $29.4\pm0.7$\\
+$\Lsym$ (MeV) & 50--75 (68\%) & $29^{+8}_{-8}$\\
+proton fraction at DUrca threshold $x_{p,\rm DU}$ & 0.1370 (0.1355--0.1389) & $0.1371^{+0.0014}_{-0.0010}$\\
+threshold density $n_{\rm DU}$ (fm$^{-3}$) & 0.47 (0.38--0.67) & $0.50^{+0.13}_{-0.07}$\\
+central density of $1.4\,\Msun$, $n_c$ (fm$^{-3}$) & 0.37 (0.33--0.43) & $0.41^{+0.05}_{-0.03}$\\
+central proton fraction $x_{p,c}(1.0\,\Msun)$ & 0.100 (0.089--0.114) & $0.054^{+0.014}_{-0.015}$\\
+central proton fraction $x_{p,c}(1.4\,\Msun)$ & 0.117 (0.099--0.131) & $0.072^{+0.023}_{-0.024}$\\
+$M_{\rm DU}$ ($\Msun$) & median 1.77; best fit 1.47 & $1.89^{+0.24}_{-0.21}$\\
+$R_{1.4}$ (km) & 12.96--13.63 & $12.10^{+0.28}_{-0.39}$\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\paragraph{What agrees.} The threshold physics is identical (the same $x_{p,\rm DU}$ to four digits), $\Esym$ agrees, the threshold density agrees, and both find that DUrca opens only in stars heavier than $1.4\,\Msun$ in the typical case.
+
+\paragraph{What disagrees.} The proton fraction inside light stars: 0.117 in my allowed region against 0.072 in theirs, a $\approx1.9\sigma$ difference in their units. This is the physical content of the $\Lsym$ difference, and it is the better quantity to compare, because cooling constrains $S(n)$ at 2--3 $n_0$ and not $\Lsym$ itself.
+
+\paragraph{Can my models reach their solution, and what does cooling say about it?} Yes, but only GM1 and GM2 reach $\Lsym\approx30$ MeV:
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+EoS ($\Esym$, $\Lsym$) & $M_{\max}$ ($\Msun$) & $x_{p,c}(1.4\,\Msun)$ & DUrca in stable stars?\\
+\midrule
+GM1 (29.5, 30) & 2.34 & 0.079 & never\\
+GM2 (29.5, 30) & 2.03 & 0.066 & never\\
+GM2 (31.0, 30) & 2.02 & 0.069 & never\\
+\bottomrule
+\end{tabular}
+\end{center}
+These give their proton fraction (0.066--0.079 against 0.072). In the final cooling analysis, the GM2 EoS with small radii ($R_{1.4}<12.45$ km, all with $\Lsym=30$--55 MeV) reach at best $\chi^2/N=1.78$, against 1.40 for the best fit. With 16 stars that is $\Delta\chi^2\approx6.1$, or $\approx3.9$ after the PDG error inflation, i.e.\ roughly a $2\sigma$ preference of the cooling data \emph{against} their region, within my model family. The physical reason: with no DUrca at all, the two coldest stars of the sample cannot be reproduced.
+
+\paragraph{So who is right?} Both calculations are internally sound; the difference comes from the data and the model families:
+\begin{itemize}
+\item \emph{Their strengths:} a flexible EoS that does not tie $\Lsym$ to the high-density $S(n)$; many laboratory data; a consistent Bayesian treatment; the newest NICER radii.
+\item \emph{Their weaknesses:} the laboratory data mainly probe $n\le n_0$, so the proton fraction at 2--3 $n_0$ is an extrapolation (they say the massive stars remain uncertain); one transport model; the PREX/CREX tension inside NSD; $\Lsym$ low compared with chiral EFT and astrophysics.
+\item \emph{My strengths:} the cooling data probe exactly the densities where DUrca switches on; the whole chain (EoS, crust, TOV, cooling, skins) uses one Lagrangian and is checked end to end.
+\item \emph{My weaknesses:} five RMF parametrisations only, in which $\Lsym$ and $S(2$--$3n_0)$ are rigidly linked by the $\omega$--$\rho$ term, and the lowest $\Lsym$ is 30--50 MeV; cooling systematics (pairing gaps, envelope, heating, stellar masses); $\chi^2/{\rm dof}=1.6$.
+\end{itemize}
+A $\sim2\sigma$ difference between two methods with different systematics is not a contradiction. The honest statement for the paper: the two agree on the DUrca picture and on $\Esym$; they differ at the $\sim2\sigma$ level on the proton fraction of light stars; and a decisive test needs an EoS family that can decouple $\Lsym$ from $S(2$--$3n_0)$ (for example a $\delta$ meson or density-dependent couplings), run through the same cooling analysis.
+
+%=====================================================================
+\section{Landau or Dirac effective mass?}
+%=====================================================================
+\subsection{Why it matters}
+In an RMF model there are two effective masses:
+\begin{itemize}
+\item the \textbf{Dirac mass} $M^*=M-g_\sigma\sigma$, the mass in the Dirac equation, used to build the EoS;
+\item the \textbf{Landau mass} $m_L^*=\sqrt{k_F^2+M^{*2}}=E_F^*$, the mass that gives the correct density of states at the Fermi surface, $N(0)=k_F m_L^*/\pi^2$.
+\end{itemize}
+NSCool uses non-relativistic Fermi-liquid formulas: the DUrca emissivity $\propto m_n^*m_p^*$, the modified Urca rate, the specific heat $\propto m^*$, and the pairing suppression factors. All of these contain the density of states, so they need the Landau mass. NSCool itself does this for electrons ($m_e^*=\sqrt{m_e^2+p_F^2}$). Sugiyama and Dohi \cite{SugiyamaDohi2026} recently tested the choice directly. With the Landau mass the non-relativistic DUrca emissivity is close to (slightly below) the fully relativistic one. With the Dirac mass it even has the wrong density dependence: it decreases with density while the true rate increases. The same holds for nucleon bremsstrahlung.
+
+\subsection{How big is the difference?}
+Values from my EoS code (DUrca emissivity ratio $=(m^*_{L,n}m^*_{L,p})/M^{*2}$):
+\begin{center}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lccccc}
+\toprule
+EoS ($\Esym$, $\Lsym$) & $n$ (fm$^{-3}$) & $M^*/M$ (Dirac) & $m^*_{L,n}/M$ & $m^*_{L,p}/M$ & DUrca rate, Landau/Dirac\\
+\midrule
+GM1 (38.1, 85) [Sinha point] & 0.30 & 0.512 & 0.659 & 0.558 & 1.40\\
+ & 0.37 & 0.444 & 0.628 & 0.507 & 1.61\\
+ & 0.54 & 0.333 & 0.601 & 0.438 & 2.37\\
+GM2 (32.5, 80) [my best fit] & 0.45 & 0.581 & 0.750 & 0.635 & 1.41\\
+FSUGarnet (32.5, 65) & 0.46 & 0.250 & 0.538 & 0.361 & 3.12\\
+IOPB-I (32.5, 65) & 0.46 & 0.247 & 0.537 & 0.360 & 3.18\\
+BigApple (32.5, 60) & 0.46 & 0.201 & 0.518 & 0.327 & 4.22\\
+BigApple (32.5, 60) & 0.60 & 0.151 & 0.542 & 0.325 & 7.67\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+For GM1 the Dirac mass would underestimate the DUrca emission by a factor 1.4--2.4. For the modern sets with small Dirac masses (FSUGarnet, IOPB-I, BigApple) the factor is 3--8.
+
+\subsection{Who used what}
+\begin{itemize}
+\item \textbf{My pipeline: Landau mass.} \texttt{rmf\_lambda\_and\_eos.py} sets \texttt{MASS\_FOR\_NSCOOL = "landau"} and writes $m^*_{L,n}$ and $m^*_{L,p}$ separately into columns 8 and 10 of every \texttt{eos*.dat}. \texttt{automationandformatting-2.py} converts them to the ratios \texttt{mstn}, \texttt{mstp} that NSCool reads. Each \texttt{eos*.dat} header has the line ``effective mass columns hold the landau mass in MeV''. Some old tables in \texttt{Professor\_EOS/} (BSR4, IOPB-I-2, S271v6) carry the Dirac mass, but they are not part of the 864 EoS. \fillin{confirm on the Mac with the commands in Sec.~\ref{sec:howto}}
+\item \textbf{Sarkar, Thapa and Sinha \cite{Sarkar2023}: not stated.} The paper says which heat capacity and emissivity formulas are used, but not which effective mass was put into the NSCool EoS file. So from the paper alone it cannot be decided. What is safe to say:
+\begin{enumerate}
+\item their DUrca \emph{thresholds} ($n_{\rm DU}$, $M_{\rm DU}$, their Fig.~3 and Table~I) are purely kinematic and do \emph{not} depend on the effective mass; my code reproduces them within about 5\% (Report~1);
+\item their cooling \emph{curves} (their Fig.~5) do depend on it; if the Dirac mass was used, the DUrca cooling at their GM1 point is 1.4--2.4 times too slow, and for DDMEX (also a small-$M^*$ model) probably more.
+\end{enumerate}
+The way to find out is to ask the authors, or to look at the effective-mass columns of their EoS table if it is available. I would not claim in a paper that they used the wrong mass without that confirmation.
+\item \textbf{Montefusco et al.\ \cite{Montefusco2026}: not relevant.} They compute the DUrca threshold, which is kinematic, and no cooling curves.
+\item \textbf{The original model papers} (GM1, FSUGarnet, IOPB-I, BigApple) quote the Dirac mass $M^*/M$ at saturation. That is correct and standard for describing the EoS; the Landau/Dirac question only arises when the tables are given to a cooling code.
+\end{itemize}
+
+\subsection{How to confirm on your own machine}\label{sec:howto}
+From the \texttt{phdfolder} directory:
+\begin{verbatim}
+grep -h "effective mass columns" EOS_RMF/eos*.dat | sort | uniq -c
+# expected: one line, "... hold the landau mass in MeV", count ~ number of tables
+head -8 NSCool/EOS/GM2_J32p5_L80p0_CAT.dat | tail -1 | awk '{print $12, $13}'
+# mstp, mstn in the top row (n = 1.6 fm^-3). Landau: 0.526 0.798
+# (different for p and n). Dirac: both 0.339 (the same number twice)
+\end{verbatim}
+If the first command ever shows ``dirac'', those tables were made before the switch and must be regenerated.
+
+\begin{thebibliography}{9}
+\small
+\bibitem{Montefusco2026} G.~Montefusco, P.~Klausner, M.~Antonelli, C.~Ciampi, D.~Gruyer and F.~Gulminelli, \emph{Ruling out nucleonic direct Urca cooling in low-mass neutron stars using nuclear data}, \arxiv{2609.24940} (2026).
+\bibitem{Sarkar2023} T.~Sarkar, V.~B.~Thapa and M.~Sinha, Phys.\ Rev.\ C \textbf{108}, 035801 (2023), \doi{10.1103/PhysRevC.108.035801}.
+\bibitem{SugiyamaDohi2026} Y.~Sugiyama and A.~Dohi, \emph{On the Nucleon Effective Mass in Neutron Stars Cooling}, \arxiv{2607.23253} (2026).
+\bibitem{Drischler2020} C.~Drischler, R.~J.~Furnstahl, J.~A.~Melendez and D.~R.~Phillips, Phys.\ Rev.\ Lett.\ \textbf{125}, 202702 (2020), \doi{10.1103/PhysRevLett.125.202702}.
+\bibitem{Essick2021} R.~Essick, I.~Tews, P.~Landry and A.~Schwenk, Phys.\ Rev.\ Lett.\ \textbf{127}, 192701 (2021), \doi{10.1103/PhysRevLett.127.192701}.
+\bibitem{LattimerLim2013} J.~M.~Lattimer and Y.~Lim, Astrophys.\ J.\ \textbf{771}, 51 (2013), \doi{10.1088/0004-637X/771/1/51}.
+\end{thebibliography}
+\end{document}

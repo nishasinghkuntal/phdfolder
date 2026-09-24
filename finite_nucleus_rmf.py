@@ -914,6 +914,7 @@ def hartree(par, nucleus_name, n_points=701, max_iter=200, tol=1.0e-3,
     closed_p = closed_n = True
     change_prev = 1.0e30
     skin_prev = -1.0e30
+    rp_prev = -1.0e30
     steady = 0
 
     it = 0
@@ -1025,11 +1026,19 @@ def hartree(par, nucleus_name, n_points=701, max_iter=200, tol=1.0e-3,
         rn_i = math.sqrt(max(radial_integral(
             grid, 4.0 * math.pi * r ** 4 * rho_n_new) / max(nnc, 1e-30), 0.0))
         skin_i = rn_i - rp_i
-        if abs(skin_i - skin_prev) < skin_tol:
+        #  The skin alone is NOT a safe test.  In the slow early sweeps
+        #  both radii can drift outward together by ~0.1 fm while their
+        #  difference hardly moves; stopping there left some Ca-48 points
+        #  over-bound by ~0.8 MeV/A with charge radii 0.1 fm too small
+        #  (NL3 Ca-48: B/A 9.20 instead of 8.58).  So the proton radius
+        #  must be stable as well, and at least MIN_SWEEPS are done.
+        if (abs(skin_i - skin_prev) < skin_tol
+                and abs(rp_i - rp_prev) < skin_tol and it >= MIN_SWEEPS):
             steady += 1
         else:
             steady = 0
         skin_prev = skin_i
+        rp_prev = rp_i
 
         change_prev = change
         if steady >= 3 or change < tol:
@@ -1149,18 +1158,48 @@ def hartree(par, nucleus_name, n_points=701, max_iter=200, tol=1.0e-3,
 #  skins this file produces mean anything.
 # ---------------------------------------------------------------------
 
+#  minimum number of self-consistency sweeps before convergence may be
+#  declared (see the convergence test in hartree)
+MIN_SWEEPS = 20
+
+
 BENCHMARKS = {
-    # Lalazissis, Ring & Vretenar, Phys. Rev. C 55, 540 (1997)
+    # Lalazissis, Koenig & Ring, Phys. Rev. C 55, 540 (1997)
     # Published Pb-208:  B/A = 7.896 MeV,  r_ch = 5.509 fm,  DR_np = 0.280 fm
-    # Published Ca-48 :  B/A = 8.636 MeV,  r_ch = 3.473 fm,  DR_np = 0.195 fm
-    "NL3": {"g_sigma": 10.2170, "g_omega": 12.8680, "g_rho": 4.4740,
-            "g2_fm": -10.4310, "g3": -28.8850, "zeta": 0.0, "lambda_wr": 0.0,
+    # Published Ca-48 :  B/A = 8.636 MeV,  r_ch = 3.473 fm.  The Ca-48 skin of
+    #   NL3 is usually quoted at 0.23-0.245 fm (the 0.195 fm previously
+    #   written here could not be traced to any source).
+    #
+    # CONVENTIONS (the cause of the old "effective mass collapsed" failure).
+    #  * NL3 writes M* = M + g_sigma sigma with sigma < 0 and
+    #        U = (1/2) m_s^2 sigma^2 + (1/3) g2 sigma^3 + (1/4) g3 sigma^4 ,
+    #    g2 = -10.431 fm^-1, g3 = -28.885.  Here PHI = g_sigma|sigma| > 0 and
+    #        U = ... + (1/3) b M PHI^3 + (1/4) c PHI^4 ,
+    #    so the cubic term changes sign:  b = -g2/(M g_s^3) = +2.055e-3,
+    #    c = g3/g_s^4 = -2.651e-3 (the familiar NL3 values in this form).
+    #    The old code used b = +g2/(M g_s^3) < 0, i.e. far too much scalar
+    #    attraction, and the scalar field ran away.
+    #  * NL3 couples the rho as g_rho tau.rho (no 1/2); this Lagrangian has
+    #    (1/2) g_rho tau.rho, so g_rho here = 2 x 4.474 = 8.948.  Only then
+    #    does NL3 give its own J = 37.4 MeV.
+    "NL3": {"g_sigma": 10.2170, "g_omega": 12.8680, "g_rho": 2.0 * 4.4740,
+            "b": 10.4310 * 197.327 / (939.0 * 10.2170 ** 3),
+            "c": -28.8850 / 10.2170 ** 4,
+            "zeta": 0.0, "lambda_wr": 0.0,
             "m_sigma": 508.1940, "m_omega": 782.5010, "m_rho": 763.0000,
             "m_dirac_over_m": 0.60, "rho0_fm3": 0.148},
     # Todd-Rutel & Piekarewicz, Phys. Rev. Lett. 95, 122501 (2005)
     # Published Pb-208:  B/A = 7.886 MeV,  r_ch = 5.521 fm,  DR_np = 0.207 fm
-    "FSUGold": {"g_sigma": 10.5924, "g_omega": 14.3020, "g_rho": 11.7673,
-                "g2_fm": -10.7556, "g3": -39.1878, "zeta": 0.06, "lambda_wr": 0.030,
+    # FSUGold writes U = (kappa/3!) PHI^3 + (lambda/4!) PHI^4 with
+    # kappa = 1.4203 MeV, lambda = 0.023762, g_s^2 = 112.1996,
+    # g_v^2 = 204.5469, g_rho^2 = 138.4701 (already the 1/2 tau.b form),
+    # zeta = 0.06, Lambda_v = 0.03.  Hence b = kappa/(2M), c = lambda/6.
+    # (The previous entry carried "g2"/"g3" numbers that do not correspond
+    #  to these published couplings.)
+    "FSUGold": {"g_sigma": 112.1996 ** 0.5, "g_omega": 204.5469 ** 0.5,
+                "g_rho": 138.4701 ** 0.5,
+                "b": 1.4203 / (2.0 * 939.0), "c": 0.023762 / 6.0,
+                "zeta": 0.06, "lambda_wr": 0.030,
                 "m_sigma": 491.5000, "m_omega": 782.5000, "m_rho": 763.0000,
                 "m_dirac_over_m": 0.61, "rho0_fm3": 0.148},
 }
@@ -1169,25 +1208,16 @@ BENCHMARKS = {
 def benchmark_parameters(name):
     """
     Turn a published parameter set into the dictionary `hartree` wants.
-
-    Published RMF papers write the sigma self-coupling as
-        U(sigma) = (1/2) m_s^2 sigma^2 + (1/3) g2 sigma^3 + (1/4) g3 sigma^4
-    whereas this project (following PhysRevC.98.065804) writes
-        U        = ... + (1/3) b M (g_s sigma)^3 + (1/4) c (g_s sigma)^4
-    Matching the two term by term gives
-        b = g2 / (M g_s^3)          c = g3 / g_s^4
-    with g2 quoted in fm^-1, so it needs an hbar*c to reach MeV first.
+    b and c are already in this project's convention (see BENCHMARKS).
     """
     raw = BENCHMARKS[name]
-    gs = raw["g_sigma"]
-    g2_mev = raw["g2_fm"] * HBARC
     par = {
         "name": name,
-        "g_sigma": gs,
+        "g_sigma": raw["g_sigma"],
         "g_omega": raw["g_omega"],
         "g_rho": raw["g_rho"],
-        "b": g2_mev / (eos.M_NUCLEON * gs ** 3),
-        "c": raw["g3"] / gs ** 4,
+        "b": raw["b"],
+        "c": raw["c"],
         "zeta": raw["zeta"],
         "lambda_wr": raw["lambda_wr"],
         "m_sigma": raw["m_sigma"],
@@ -1197,9 +1227,20 @@ def benchmark_parameters(name):
         "PHI0": (1.0 - raw["m_dirac_over_m"]) * eos.M_NUCLEON,
         "ok": True,
     }
-    # omega field at saturation, used only as a starting guess
+    # omega field at saturation, used only as a starting guess.  With
+    # zeta != 0 it solves  W/C_w^2 + (zeta/6) W^3 = n0  (Newton); the
+    # linear guess C_w^2 n0 overshoots and makes the first potential
+    # so repulsive that too few levels bind.
     cw2 = (raw["g_omega"] / raw["m_omega"]) ** 2
-    par["W0"] = cw2 * raw["rho0_fm3"] * HBARC ** 3
+    n0 = raw["rho0_fm3"] * HBARC ** 3
+    w0 = cw2 * n0
+    it = 0
+    while it < 100 and raw["zeta"] != 0.0:
+        f = w0 / cw2 + raw["zeta"] / 6.0 * w0 ** 3 - n0
+        fp = 1.0 / cw2 + raw["zeta"] / 2.0 * w0 ** 2
+        w0 = w0 - f / fp
+        it = it + 1
+    par["W0"] = w0
     return par
 
 
