@@ -401,13 +401,22 @@ regarding the free-profiling value as an unphysical lower bound.
 While checking the observational inputs against their sources we found that the
 surface temperature previously adopted for RX~J0822$-$4300, the central compact
 object in Puppis~A \citep{Becker2012}, was $\log_{10}T = 6.24$, corresponding to
-$150$~eV. In the two-component atmosphere fit of Zavlin \emph{et al.}
-\citep{Zavlin1999}, from which that number derives, the \emph{cold}
-component at $67$~eV is the one covering an emitting radius of $12$~km, i.e.\
-the whole star, while the $150$~eV component is a small hot spot. A fit with a
+$150$~eV. In the two-component atmosphere fit listed for this object in the
+compilation of \citet{Potekhin2020}, from which that number derives, the
+\emph{cold} component at $67$~eV is the one covering an emitting radius of
+$12$~km, i.e.\ the whole star, while the $150$~eV component is a small hot spot.
+% CHECK: add the original paper of the two-component fit as listed in
+% Table 1 of Potekhin et al. (2020). It is NOT Zavlin et al. (1999), whose
+% abstract gives a single H/He atmosphere fit with T = 1.6-1.9 MK. A fit with a
 magnetized hydrogen atmosphere covering the entire surface gives instead
 $T^\infty = 1.18\pm0.05$~MK, i.e.\ $\log_{10}T = 6.072$, which is also the
 value adopted in \citet{Potekhin2020}.
+% CHECK: cite the original nsmax fit here (analysis notes say
+% "Shibanov et al. 2016", but the Shibanov et al. 2016 paper found,
+% ApJ 831, 112, is about Calvera; take the reference from Potekhin 2020).
+Other statistically acceptable fits span $0.79$--$1.34$~MK
+($\log_{10}T = 5.90$--$6.13$), so the adopted $\sigma = 0.05$~dex is, if
+anything, too tight for this object; this is listed among the systematics.
 
 The effect is large. Re-running the final analysis with the old value
 restored, and everything else unchanged, RX~J0822 becomes the single largest
@@ -499,6 +508,24 @@ than the value inferred from PREX-2 alone, $106\pm37$~MeV
 \citet{Drischler2020}. We regard the agreement as a cross-check of the
 cooling method rather than an improvement in precision.
 
+A recent Bayesian analysis combining nuclear structure data and
+INDRA--FAZIA isospin-diffusion measurements with chiral effective field theory
+and astrophysical constraints \citep{Montefusco2026} bears directly on this
+result. It finds that nucleonic direct Urca at or below $1.4\,\Msun$ has a
+posterior probability below $1\%$, with $M_{\rm DU}=1.89^{+0.24}_{-0.21}\,\Msun$,
+in agreement with the threshold masses of Sec.~\ref{sec:mdu}. Its symmetry
+energy, $\Esym=29.4\pm0.7$~MeV, lies inside our interval, but its slope,
+$\Lsym=29\pm8$~MeV, is lower than ours; the two 68\% intervals do not overlap
+and meet only at our 95\% edge. Part of the difference is structural. The
+lowest $\Lsym$ with a real $g_\rho$ is $35$, $45$ and $50$~MeV for BigApple,
+IOPB-I and FSUGarnet, and our grid stops at $30$~MeV, so the region they favour
+is sampled here only by GM1 and GM2. Moreover, with $\omega$--$\rho$ mixing the
+slope at saturation and $S(n)$ at two to three times saturation, which is what
+cooling measures, are tied together more rigidly than in their metamodel. Their
+isospin-diffusion constraint alone, $\Lsym=41^{+14}_{-15}$~MeV, does overlap our
+interval. Extending the scan to lower $\Lsym$ is the natural test of this
+tension.
+
 \begin{figure}[t]
 \includegraphics[width=\columnwidth]{figs/fig_R14.pdf}
 \caption{$R(1.4\,\Msun)$ under a flat prior over the surviving equations of
@@ -518,6 +545,23 @@ paper \citep{PaperII}. They are retained here because the cooling calculation
 requires only the equation of state, for which they are complete, but any
 statement connecting our cooling constraint to nuclear structure necessarily
 rests on the three parametrizations that are complete in that stronger sense.
+
+\subsection{Direct Urca threshold masses}
+\label{sec:mdu}
+
+For every equation of state the direct Urca threshold density $n_{\rm DU}$
+follows from Eq.~(\ref{eq:durca}), and the threshold mass $M_{\rm DU}$ is the
+mass of the star whose central density equals $n_{\rm DU}$, read off the
+stable branch of the mass--radius curve. Within the 68\% region
+($\Lsym=50$--$75$~MeV, $\Esym=28$--$36$~MeV) the median is
+$M_{\rm DU}=1.77\,\Msun$ and $9.9\%$ of the equations of state open direct Urca
+at or below $1.4\,\Msun$; for $35$ of the $152$ no stable star reaches the
+threshold at all, all but one of them GM1 or GM2. The best-fitting equation of
+state has $M_{\rm DU}=1.47\,\Msun$. This is the picture behind the fit: stars
+near $1.4\,\Msun$ cool without direct Urca, while the two coldest objects,
+which select $1.8\,\Msun$, lie above threshold.
+% CHECK: replace 9.9% (fraction of grid points) by the posterior-weighted
+% probability P(M_DU <= 1.4) from cooling_chi2_final.csv.
 
 \subsection{Implied radius}
 
@@ -547,6 +591,24 @@ mass.
 % =====================================================================
 \section{Systematic uncertainties}
 \label{sec:systematics}
+
+\paragraph{Isoscalar calibration of the $\zeta\neq0$ sets.} For FSUGarnet,
+IOPB-I and BigApple the cubic and quartic $\sigma$ couplings and $\zeta$ were
+obtained from the published saturation point with $C_\sigma^2$ and $C_\omega^2$
+held at their published values. The resulting $\zeta$ differ slightly from the
+published ones, and the incompressibility is reproduced to $1.4\%$ rather than
+exactly. Refitting exactly to $(\rho_0,E/A,K,M^\ast/M)$ changes $M_{\max}$ by
+at most $0.001\,\Msun$. Adopting the published $\zeta$ reproduces the published
+maximum masses to $0.2\%$ (IOPB-I: $2.149\,\Msun$), raises the IOPB-I maximum
+mass by $0.03\,\Msun$, and moves $M_{\rm DU}$ by at most $0.02\,\Msun$, well
+below the resolution of the cooling comparison.
+% CHECK: confirm the published zeta (FSUGarnet 0.0235, IOPB-I zeta_0=3.103,
+% BigApple 0.0007) against the original parameter tables.
+
+\paragraph{Temperature of RX~J0822$-$4300.} The spread of acceptable
+whole-surface fits, $\log_{10}T=5.90$--$6.13$, is wider than the adopted
+$\sigma=0.05$~dex.
+% CHECK: rerun with sigma = 0.12 for RX J0822 and quote the change.
 
 \paragraph{Crust consistency.} A fixed crust--core join density for all
 $(\Esym,\Lsym)$, and a non-relativistic crust on a relativistic core; see

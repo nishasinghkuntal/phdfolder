@@ -22,6 +22,9 @@ Hauz Khas, New Delhi 110016, India}
 
 \date{\today}
 
+% NOTE (24 Sep 2026): the solver convergence test was corrected. The
+% validation table, fit residuals, intervals and tension costs below must
+% be regenerated from skin_grid_fixed_*.csv before submission.
 \begin{abstract}
 We compute the neutron skin thicknesses of $^{208}$Pb and $^{48}$Ca directly
 from the relativistic mean field parametrizations whose equations of state are
@@ -130,6 +133,16 @@ occupied space; at the soft corner of the parameter grid the bound levels of
 $^{208}$Pb hold exactly $126$ neutrons with no margin, and a basis chosen to
 match the occupied orbitals fails there.
 
+Convergence is not judged on the skin alone. In the slow early sweeps of the
+self-consistency loop both radii can drift outward together by $\sim0.1$~fm
+while their difference hardly changes, so a test on the skin can stop a
+calculation that has not converged; such a solution is over-bound and too
+compact. We therefore require the skin \emph{and} the proton radius to be
+stable to $2\times10^{-4}$~fm over three consecutive sweeps, after at least
+twenty sweeps.
+% NOTE: all skin numbers in this paper must be regenerated with this test
+% (rerun_skin_grid_fixed.py). Individual grid points move by up to ~0.006 fm.
+
 \subsection{The meson masses are not optional}
 \label{sec:msigma}
 
@@ -220,6 +233,11 @@ PREX-2 uncertainty. Charge radii agree to $0.03$~fm and binding energies to
 $0.08$~MeV per nucleon, the latter a systematic under-binding consistent with
 the pairing term included in the published calculation and omitted here; it does
 not affect the skins, which are differences of radii.
+
+As an independent benchmark we also run two parametrizations that play no
+role in the scan. For NL3 \citep{NL3} we obtain $\DRnp(^{208}\mathrm{Pb})=0.277$~fm
+against the published $0.280$~fm, and for FSUGold \citep{ToddRutel2005}
+$0.207$~fm against $0.207$~fm, with charge radii within $0.03$~fm.
 
 Three further checks were not fitted to anything. First, the solver reproduces
 one parametrization across $A=16$ to $208$ ($^{16}$O, $^{40}$Ca, $^{48}$Ca,
